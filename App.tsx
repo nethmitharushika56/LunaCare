@@ -113,7 +113,7 @@ function App() {
 
     switch (currentView) {
       case 'dashboard':
-        return <Dashboard user={user} setView={setCurrentView} />;
+        return <Dashboard user={user} setView={setCurrentView} cart={cart} addToCart={addToCart} />;
       case 'cycle':
         return <CycleTracker />;
       case 'symptom-ai':
@@ -144,7 +144,7 @@ function App() {
       case 'help':
         return <HelpSupport setView={setCurrentView} />;
       default:
-        return <Dashboard user={user} setView={setCurrentView} />;
+        return <Dashboard user={user} setView={setCurrentView} cart={cart} addToCart={addToCart} />;
     }
   };
 
@@ -156,9 +156,6 @@ function App() {
         </div>
     );
   }
-
-  // Wrapped content with LanguageProvider logic inside component for cleaner tree? 
-  // No, we wrap the whole return.
 
   const AppContent = () => {
     if (!isAuthenticated) {

@@ -1,12 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
-import { UserProfile, ViewState } from '../types';
-import { Upload, FileText, MapPin, Syringe, ShieldCheck, Activity, Calendar, ChevronRight, AlertCircle, Heart, Plus, Check, X, Trash2 } from 'lucide-react';
+import { UserProfile, ViewState, Product } from '../types';
+import { Upload, FileText, MapPin, Syringe, ShieldCheck, Activity, Calendar, ChevronRight, AlertCircle, Heart, Plus, Check, X, Trash2, ShoppingBag } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { PRODUCTS } from '../constants';
 
 interface DashboardProps {
   user: UserProfile;
   setView: (view: ViewState) => void;
+  cart: Product[];
+  addToCart: (product: Product) => void;
 }
 
 interface Task {
@@ -15,7 +18,7 @@ interface Task {
   completed: boolean;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ user, setView }) => {
+const Dashboard: React.FC<DashboardProps> = ({ user, setView, cart, addToCart }) => {
   const { t } = useLanguage();
   // Task State Management
   const [tasks, setTasks] = useState<Task[]>(() => {
@@ -296,6 +299,49 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setView }) => {
                         )}
                     </ul>
                  </div>
+            </div>
+        </div>
+
+        {/* Wellness Shop Preview */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6 shadow-sm mt-6">
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                    <ShoppingBag className="text-rose-500" size={20} />
+                    Wellness Essentials
+                </h3>
+                <button 
+                    onClick={() => setView('shop')}
+                    className="text-xs font-bold text-rose-500 hover:text-rose-600 dark:text-rose-400"
+                >
+                    View Shop →
+                </button>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {PRODUCTS.slice(0, 4).map(product => {
+                    const isInCart = cart.some(p => p.id === product.id);
+                    return (
+                        <div key={product.id} className="border border-slate-100 dark:border-slate-800 rounded-xl p-3 flex flex-col group hover:shadow-md transition-all">
+                            <div className="h-24 bg-slate-100 dark:bg-slate-800 rounded-lg mb-3 overflow-hidden relative">
+                                <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                            </div>
+                            <h4 className="font-bold text-slate-800 dark:text-white text-xs mb-1 line-clamp-1">{product.name}</h4>
+                            <div className="mt-auto flex justify-between items-center">
+                                <span className="text-sm font-bold text-rose-600 dark:text-rose-400">${product.price.toFixed(2)}</span>
+                                <button 
+                                    onClick={() => addToCart(product)}
+                                    disabled={isInCart}
+                                    className={`p-1.5 rounded-lg transition-colors ${
+                                        isInCart 
+                                        ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' 
+                                        : 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:bg-slate-700'
+                                    }`}
+                                >
+                                    {isInCart ? <Check size={14} /> : <Plus size={14} />}
+                                </button>
+                            </div>
+                        </div>
+                    )
+                })}
             </div>
         </div>
     </div>
