@@ -75,7 +75,7 @@ const Community: React.FC<CommunityProps> = ({ user }) => {
     const newPost: Post = {
         id: Date.now().toString(),
         author: user.name,
-        avatar: 'https://ui-avatars.com/api/?background=f43f5e&color=fff&name=' + user.name,
+        avatar: user.avatar || 'https://ui-avatars.com/api/?background=f43f5e&color=fff&name=' + user.name,
         content: newPostContent,
         likes: 0,
         comments: 0,
@@ -102,7 +102,7 @@ const Community: React.FC<CommunityProps> = ({ user }) => {
         id: Date.now().toString(),
         sender: user.name,
         senderId: user.id,
-        avatar: 'https://ui-avatars.com/api/?background=f43f5e&color=fff&name=' + user.name,
+        avatar: user.avatar || 'https://ui-avatars.com/api/?background=f43f5e&color=fff&name=' + user.name,
         text: chatInput,
         timestamp: new Date().toISOString()
     };

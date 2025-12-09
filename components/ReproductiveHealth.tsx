@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { WORKSHOPS } from '../constants';
-import { PlayCircle, Users, CalendarPlus, BookOpen, Heart, Activity, CheckCircle, Calendar, Download, Loader2 } from 'lucide-react';
+import { PlayCircle, Users, CalendarPlus, BookOpen, Heart, Activity, CheckCircle, Calendar, Download, Loader2, X, Clock } from 'lucide-react';
 import { UserProfile, Workshop } from '../types';
 import { api } from '../services/api';
 
@@ -10,25 +11,42 @@ interface ReproductiveHealthProps {
 }
 
 const ReproductiveHealth: React.FC<ReproductiveHealthProps> = ({ user, setUser }) => {
-  const [registering, setRegistering] = useState<string | null>(null);
+  const [registering, setRegistering] = useState(false);
+  const [selectedWorkshop, setSelectedWorkshop] = useState<Workshop | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
 
-  const handleRegister = async (workshop: Workshop) => {
-      setRegistering(workshop.id);
+  const openRegistrationModal = (workshop: Workshop) => {
+      setSelectedWorkshop(workshop);
+      setIsSuccess(false);
+  };
+
+  const closeRegistrationModal = () => {
+      setSelectedWorkshop(null);
+      setIsSuccess(false);
+  };
+
+  const handleConfirmRegistration = async () => {
+      if (!selectedWorkshop) return;
+      
+      setRegistering(true);
       try {
-          const updatedUser = await api.user.registerWorkshop(workshop.id);
+          const updatedUser = await api.user.registerWorkshop(selectedWorkshop.id);
           setUser(updatedUser);
-          // Auto-download ICS after registration
-          downloadICS(workshop);
-          alert(`Successfully registered for "${workshop.title}"! A calendar invitation has been downloaded.`);
+          setIsSuccess(true);
       } catch (e) {
           console.error(e);
           alert("Failed to register. Please try again.");
+          setRegistering(false);
       } finally {
-          setRegistering(null);
+          // Keep registering true if success to prevent double clicks before transition
+          if (!isSuccess) setRegistering(false); 
       }
   };
 
-  const downloadICS = (workshop: Workshop) => {
+  const downloadICS = () => {
+      if (!selectedWorkshop) return;
+      const workshop = selectedWorkshop;
+      
       // Mock date parsing logic: assume "Oct 15, 2:00 PM" format in current year
       const currentYear = new Date().getFullYear();
       const dateParts = workshop.date.split(', '); // ["Oct 15", "2:00 PM"]
@@ -64,7 +82,7 @@ const ReproductiveHealth: React.FC<ReproductiveHealthProps> = ({ user, setUser }
   };
 
   return (
-    <div className="space-y-8 pb-20 animate-fade-in">
+    <div className="space-y-8 pb-20 animate-fade-in relative">
         
         {/* Header Hero */}
         <div className="bg-gradient-to-r from-pink-500 to-rose-400 rounded-3xl p-8 text-white shadow-lg relative overflow-hidden">
@@ -121,50 +139,37 @@ const ReproductiveHealth: React.FC<ReproductiveHealthProps> = ({ user, setUser }
                     const isRegistered = user.registeredWorkshopIds?.includes(workshop.id);
                     
                     return (
-                        <div key={workshop.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+                        <div key={workshop.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col group hover:shadow-md transition-all">
                             <div className="h-32 bg-slate-200 relative">
-                                <img src={workshop.image} alt={workshop.title} className="w-full h-full object-cover" />
+                                <img src={workshop.image} alt={workshop.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                 <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded">
                                     {workshop.category}
                                 </div>
                                 {isRegistered && (
-                                    <div className="absolute top-2 right-2 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1 shadow-sm">
+                                    <div className="absolute top-2 right-2 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1 shadow-sm animate-fade-in">
                                         <CheckCircle size={10} /> Registered
                                     </div>
                                 )}
                             </div>
                             <div className="p-4 flex-1 flex flex-col">
-                                <h4 className="font-bold text-slate-800 dark:text-white text-lg mb-1">{workshop.title}</h4>
+                                <h4 className="font-bold text-slate-800 dark:text-white text-lg mb-1 leading-tight">{workshop.title}</h4>
                                 <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Hosted by {workshop.host} • {workshop.date}</p>
                                 <div className="mt-auto flex items-center justify-between">
                                     <span className="text-xs text-slate-400 dark:text-slate-500 flex items-center gap-1">
                                         <Users size={12} /> {workshop.attendees + (isRegistered ? 1 : 0)} attending
                                     </span>
                                     
-                                    <div className="flex gap-2">
-                                        {isRegistered && (
-                                            <button 
-                                                onClick={() => downloadICS(workshop)}
-                                                className="p-2 text-slate-500 hover:text-rose-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                                                title="Add to Calendar"
-                                            >
-                                                <Calendar size={18} />
-                                            </button>
-                                        )}
-                                        
-                                        <button 
-                                            onClick={() => !isRegistered && handleRegister(workshop)}
-                                            disabled={!!isRegistered || registering === workshop.id}
-                                            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 ${
-                                                isRegistered 
-                                                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 cursor-default'
-                                                : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200'
-                                            }`}
-                                        >
-                                            {registering === workshop.id ? <Loader2 size={16} className="animate-spin" /> : null}
-                                            {isRegistered ? 'Joined' : 'Join'}
-                                        </button>
-                                    </div>
+                                    <button 
+                                        onClick={() => !isRegistered && openRegistrationModal(workshop)}
+                                        disabled={!!isRegistered}
+                                        className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-2 ${
+                                            isRegistered 
+                                            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 cursor-default opacity-80'
+                                            : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 shadow-lg shadow-slate-200 dark:shadow-slate-800/50'
+                                        }`}
+                                    >
+                                        {isRegistered ? 'Spot Reserved' : 'Join'}
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -188,6 +193,87 @@ const ReproductiveHealth: React.FC<ReproductiveHealthProps> = ({ user, setUser }
                 Find a Group
             </button>
         </div>
+
+        {/* Registration Modal */}
+        {selectedWorkshop && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={closeRegistrationModal}></div>
+                <div className="relative bg-white dark:bg-slate-900 rounded-[2rem] w-full max-w-md shadow-2xl animate-scale-bounce p-8 border border-slate-100 dark:border-slate-800 overflow-hidden">
+                    <button 
+                        onClick={closeRegistrationModal} 
+                        className="absolute top-4 right-4 p-2 bg-slate-50 dark:bg-slate-800 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors"
+                    >
+                        <X size={20} />
+                    </button>
+
+                    {!isSuccess ? (
+                        <div className="animate-fade-in">
+                            <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">Confirm Registration</h3>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm mb-8">Secure your spot for this live session.</p>
+                            
+                            <div className="bg-slate-50 dark:bg-slate-800 p-6 rounded-2xl mb-8 space-y-4 border border-slate-100 dark:border-slate-700">
+                                <h4 className="font-bold text-slate-800 dark:text-white text-xl leading-snug">{selectedWorkshop.title}</h4>
+                                <div className="space-y-3 pt-2">
+                                    <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
+                                        <div className="w-8 h-8 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center text-rose-500">
+                                            <Users size={14} />
+                                        </div>
+                                        <span>Hosted by <span className="font-semibold">{selectedWorkshop.host}</span></span>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
+                                         <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-500">
+                                            <Calendar size={14} />
+                                        </div>
+                                        <span>{selectedWorkshop.date}</span>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
+                                         <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-500">
+                                            <Clock size={14} />
+                                        </div>
+                                        <span>Duration: 60 Minutes</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button 
+                                onClick={handleConfirmRegistration}
+                                disabled={registering}
+                                className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold py-4 rounded-xl hover:bg-slate-800 dark:hover:bg-slate-100 transition-all flex items-center justify-center gap-2 shadow-xl shadow-slate-200 dark:shadow-slate-900/50 active:scale-[0.98]"
+                            >
+                                {registering ? <Loader2 className="animate-spin" size={20} /> : (
+                                    <>Confirm & Join <CheckCircle size={18} /></>
+                                )}
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="text-center py-2 animate-fade-in">
+                            <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce-slow shadow-lg shadow-green-200 dark:shadow-green-900/20">
+                                <CheckCircle size={40} />
+                            </div>
+                            <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">You're In!</h3>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm mb-8 leading-relaxed max-w-xs mx-auto">
+                                You've successfully registered for <strong>{selectedWorkshop.title}</strong>.
+                            </p>
+                            
+                            <div className="space-y-3">
+                                <button 
+                                    onClick={downloadICS}
+                                    className="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-200 dark:shadow-indigo-900/40 active:scale-[0.98]"
+                                >
+                                    <CalendarPlus size={20} /> Add to Device Calendar
+                                </button>
+                                <button 
+                                    onClick={closeRegistrationModal}
+                                    className="w-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold py-4 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        )}
     </div>
   );
 };

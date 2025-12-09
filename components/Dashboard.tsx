@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { UserProfile, ViewState } from '../types';
 import { Upload, FileText, MapPin, Syringe, ShieldCheck, Activity, Calendar, ChevronRight, AlertCircle, Heart, Plus, Check, X, Trash2 } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface DashboardProps {
   user: UserProfile;
@@ -15,6 +16,7 @@ interface Task {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ user, setView }) => {
+  const { t } = useLanguage();
   // Task State Management
   const [tasks, setTasks] = useState<Task[]>(() => {
     try {
@@ -51,18 +53,25 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setView }) => {
     setIsAdding(false);
   };
 
+  const getTimeGreeting = () => {
+    const hours = new Date().getHours();
+    if (hours < 12) return t('dash.morning');
+    if (hours < 18) return t('dash.afternoon');
+    return t('dash.evening');
+  };
+
   return (
     <div className="space-y-6 pb-20 animate-fade-in">
         {/* Welcome Section */}
         <div className="flex justify-between items-end">
             <div>
-                <h2 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white">Good Morning, {user.name}</h2>
-                <p className="text-slate-500 dark:text-slate-400 text-sm md:text-base">Here is your reproductive health summary for today.</p>
+                <h2 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white">{getTimeGreeting()}, {user.name}</h2>
+                <p className="text-slate-500 dark:text-slate-400 text-sm md:text-base">{t('dash.summary')}</p>
             </div>
             <div className="hidden md:block">
                  <span className="bg-rose-100 dark:bg-rose-900/40 text-rose-700 dark:text-rose-300 px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2">
                     <Calendar size={14} />
-                    Cycle Day {Math.max(1, 12)} {/* Mock calculation based on mock data */}
+                    Cycle Day {Math.max(1, 12)}
                  </span>
             </div>
         </div>
@@ -75,18 +84,18 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setView }) => {
                          <div className="bg-white/20 backdrop-blur-md p-1.5 rounded-lg">
                             <Activity className="text-rose-100" size={16} />
                          </div>
-                         <span className="font-bold text-rose-100 uppercase text-xs tracking-wider">Womb Health Index</span>
+                         <span className="font-bold text-rose-100 uppercase text-xs tracking-wider">{t('dash.womb_health')}</span>
                     </div>
-                    <h3 className="text-3xl md:text-4xl font-bold mb-4">Excellent Condition</h3>
+                    <h3 className="text-3xl md:text-4xl font-bold mb-4">{t('dash.condition')}</h3>
                     <p className="text-rose-100 opacity-90 mb-6 text-sm leading-relaxed max-w-sm">
-                        Your recorded symptoms and cycle patterns indicate a healthy reproductive system. No irregularities detected in your last 3 cycles.
+                        {t('dash.condition_desc')}
                     </p>
                     <div className="flex flex-wrap gap-3">
                         <button onClick={() => setView('cycle')} className="bg-white text-rose-600 px-5 py-2.5 rounded-xl font-bold text-sm shadow-md hover:bg-rose-50 hover:scale-105 active:scale-95 transition-all">
-                            View Cycle Details
+                            {t('dash.view_cycle')}
                         </button>
                         <button onClick={() => setView('symptom-ai')} className="bg-rose-700/30 backdrop-blur-md text-white border border-rose-400/30 px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-rose-700/50 hover:scale-105 active:scale-95 transition-all">
-                            Ask Luna AI
+                            {t('dash.ask_ai')}
                         </button>
                     </div>
                 </div>
@@ -115,12 +124,12 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setView }) => {
                     <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-xl flex items-center justify-center mb-4 group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">
                         <FileText size={24} />
                     </div>
-                    <h3 className="font-bold text-slate-800 dark:text-white text-lg">Report Analysis</h3>
+                    <h3 className="font-bold text-slate-800 dark:text-white text-lg">{t('dash.report')}</h3>
                     <p className="text-slate-500 dark:text-slate-400 text-xs mt-2 mb-4 leading-relaxed">
                         Upload lab reports (blood work, ultrasound) for AI-powered health insights.
                     </p>
                     <button className="w-full py-2.5 border border-indigo-100 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-bold text-xs flex items-center justify-center gap-2 group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600 transition-all">
-                        <Upload size={14} /> Upload Report
+                        <Upload size={14} /> {t('dash.upload')}
                     </button>
                 </div>
             </div>
@@ -133,7 +142,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setView }) => {
                     <div className="w-12 h-12 bg-teal-100 dark:bg-teal-900/50 text-teal-600 dark:text-teal-400 rounded-xl flex items-center justify-center mb-4 group-hover:bg-teal-600 group-hover:text-white transition-colors duration-300">
                         <Syringe size={24} />
                     </div>
-                    <h3 className="font-bold text-slate-800 dark:text-white text-lg">Vaccine Alerts</h3>
+                    <h3 className="font-bold text-slate-800 dark:text-white text-lg">{t('dash.vaccine')}</h3>
                     <div className="space-y-3 mt-3">
                         <div className="flex justify-between items-center text-sm bg-slate-50 dark:bg-slate-800 p-2 rounded-lg">
                             <span className="text-slate-600 dark:text-slate-300 text-xs font-semibold">HPV Vaccine</span>
@@ -155,12 +164,12 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setView }) => {
                     <div className="w-12 h-12 bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400 rounded-xl flex items-center justify-center mb-4 group-hover:bg-rose-600 group-hover:text-white transition-colors duration-300">
                         <MapPin size={24} />
                     </div>
-                    <h3 className="font-bold text-slate-800 dark:text-white text-lg">Medical Centers</h3>
+                    <h3 className="font-bold text-slate-800 dark:text-white text-lg">{t('dash.medical')}</h3>
                     <p className="text-slate-500 dark:text-slate-400 text-xs mt-2 mb-4 leading-relaxed">
                         Locate trusted gynecologists and fertility clinics near you.
                     </p>
                     <div className="flex items-center gap-1 text-rose-600 dark:text-rose-400 font-bold text-xs cursor-pointer hover:underline mt-auto">
-                        Find Centers <ChevronRight size={14} />
+                        {t('dash.find')} <ChevronRight size={14} />
                     </div>
                 </div>
             </div>
@@ -173,9 +182,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setView }) => {
                 <div className="flex justify-between items-center mb-6">
                     <h3 className="font-bold text-slate-800 dark:text-white text-lg flex items-center gap-2">
                         <ShieldCheck className="text-violet-500 dark:text-violet-400" size={20} /> 
-                        Reproductive System Monitor
+                        {t('dash.monitor')}
                     </h3>
-                    <button className="text-xs font-bold text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300">View History</button>
+                    <button className="text-xs font-bold text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300">{t('dash.view_history')}</button>
                 </div>
                 
                 <div className="space-y-4">
@@ -217,7 +226,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setView }) => {
             {/* Right Column - Mini Cal / Stats */}
             <div className="space-y-4">
                  <div className="bg-gradient-to-br from-indigo-500 to-violet-600 dark:from-indigo-600 dark:to-violet-700 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden group">
-                    <h4 className="font-bold opacity-90 mb-1 relative z-10">Next Period</h4>
+                    <h4 className="font-bold opacity-90 mb-1 relative z-10">{t('dash.next_period')}</h4>
                     <p className="text-3xl font-bold relative z-10">16 Days</p>
                     <p className="text-xs opacity-75 mt-1 relative z-10">Predicted Start: Sep 24</p>
                     <div className="mt-4 w-full bg-white/20 h-1.5 rounded-full overflow-hidden relative z-10">
@@ -229,7 +238,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setView }) => {
 
                  <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
                     <div className="flex justify-between items-center mb-3">
-                        <h4 className="font-bold text-slate-800 dark:text-white">Daily Tasks</h4>
+                        <h4 className="font-bold text-slate-800 dark:text-white">{t('dash.daily_tasks')}</h4>
                         <button 
                             onClick={() => setIsAdding(true)}
                             className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-rose-500 transition-colors hover:scale-110 active:scale-95"
@@ -244,7 +253,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setView }) => {
                                 type="text"
                                 value={newTask}
                                 onChange={(e) => setNewTask(e.target.value)}
-                                placeholder="Add task..."
+                                placeholder={t('dash.add_task')}
                                 className="flex-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 dark:text-white"
                                 onKeyDown={(e) => e.key === 'Enter' && addTask()}
                                 autoFocus

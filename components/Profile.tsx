@@ -19,8 +19,12 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogout, setView }) => {
 
         {/* User Card */}
         <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800 flex items-center gap-4">
-            <div className="w-20 h-20 bg-rose-100 dark:bg-rose-900/40 rounded-full flex items-center justify-center text-4xl border-4 border-white dark:border-slate-900 shadow-sm">
-                👩‍🦰
+            <div className="w-20 h-20 bg-rose-100 dark:bg-rose-900/40 rounded-full flex items-center justify-center text-4xl border-4 border-white dark:border-slate-900 shadow-sm overflow-hidden">
+                {user.avatar ? (
+                    <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                ) : (
+                    "👩‍🦰"
+                )}
             </div>
             <div>
                 <h3 className="text-xl font-bold text-slate-800 dark:text-white">{user.name}</h3>

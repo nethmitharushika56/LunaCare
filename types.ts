@@ -11,6 +11,7 @@ export interface UserProfile {
   periodLength: number;
   lastPeriodStart: string; // ISO date
   registeredWorkshopIds?: string[];
+  avatar?: string;
 }
 
 export interface CycleDay {

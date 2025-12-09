@@ -2,6 +2,7 @@
 import React from 'react';
 import { ViewState } from '../types';
 import { Home, Calendar, BrainCircuit, Users, ShoppingBag, BookOpen, Baby, UserCircle, Flower2, Moon, Heart, Sun } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface NavigationProps {
   currentView: ViewState;
@@ -11,15 +12,17 @@ interface NavigationProps {
 }
 
 const Navigation: React.FC<NavigationProps> = ({ currentView, setView, toggleTheme, isDarkMode }) => {
+  const { t } = useLanguage();
+
   const navItems: { id: ViewState; label: string; icon: React.ReactNode }[] = [
-    { id: 'dashboard', label: 'Home', icon: <Home size={22} /> },
-    { id: 'cycle', label: 'Cycle', icon: <Calendar size={22} /> },
-    { id: 'pregnancy', label: 'Baby', icon: <Baby size={22} /> },
-    { id: 'reproductive-health', label: 'Health Hub', icon: <Flower2 size={22} /> },
-    { id: 'symptom-ai', label: 'Luna AI', icon: <BrainCircuit size={22} /> },
-    { id: 'community', label: 'Talk', icon: <Users size={22} /> },
-    { id: 'shop', label: 'Shop', icon: <ShoppingBag size={22} /> },
-    { id: 'learn', label: 'Learn', icon: <BookOpen size={22} /> },
+    { id: 'dashboard', label: t('nav.home'), icon: <Home size={22} /> },
+    { id: 'cycle', label: t('nav.cycle'), icon: <Calendar size={22} /> },
+    { id: 'pregnancy', label: t('nav.baby'), icon: <Baby size={22} /> },
+    { id: 'reproductive-health', label: t('nav.health'), icon: <Flower2 size={22} /> },
+    { id: 'symptom-ai', label: t('nav.ai'), icon: <BrainCircuit size={22} /> },
+    { id: 'community', label: t('nav.community'), icon: <Users size={22} /> },
+    { id: 'shop', label: t('nav.shop'), icon: <ShoppingBag size={22} /> },
+    { id: 'learn', label: t('nav.learn'), icon: <BookOpen size={22} /> },
   ];
 
   return (
@@ -27,7 +30,6 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, setView, toggleThe
       {/* Desktop Sidebar */}
       <nav className="hidden md:flex flex-col w-72 bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 h-screen fixed left-0 top-0 z-50 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-colors duration-300">
         <div className="p-8 pb-6">
-            {/* New Logo Design */}
             <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setView('dashboard')}>
                 <div className="relative w-12 h-12 bg-gradient-to-tr from-rose-500 to-violet-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-rose-200 dark:shadow-rose-900/50 group-hover:shadow-rose-300 transition-all duration-300 group-hover:scale-105 group-hover:-rotate-3">
                     <Moon size={24} fill="currentColor" className="text-white relative z-10" />
@@ -54,7 +56,6 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, setView, toggleThe
                   : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 font-medium'
               }`}
             >
-              {/* Active Indicator Strip */}
               <div 
                 className={`absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-rose-500 rounded-r-full transition-all duration-300 ${
                     currentView === item.id ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'
@@ -66,14 +67,12 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, setView, toggleThe
               </div>
               <span className="relative z-10">{item.label}</span>
               
-              {/* Hover Glow */}
               <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/50 to-white/0 dark:from-white/0 dark:via-white/5 dark:to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 opacity-20" />
             </button>
           ))}
         </div>
 
         <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900 space-y-2">
-           {/* Theme Toggle */}
            <button 
              onClick={toggleTheme}
              className="flex items-center gap-3 px-4 py-3.5 rounded-2xl transition-all w-full group text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:text-indigo-600 dark:hover:text-indigo-400 hover:shadow-sm active:scale-[0.98]"
@@ -81,7 +80,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, setView, toggleThe
               <div className="bg-slate-200 dark:bg-slate-800 p-1.5 rounded-full group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900 transition-colors">
                   {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
               </div>
-              <span className="font-medium">{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+              <span className="font-medium">{isDarkMode ? t('nav.mode.light') : t('nav.mode.dark')}</span>
            </button>
 
            <button 
@@ -95,12 +94,11 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, setView, toggleThe
              <div className="bg-slate-200 dark:bg-slate-800 p-1.5 rounded-full group-hover:bg-rose-100 dark:group-hover:bg-rose-900 transition-colors">
                  <UserCircle size={20} />
              </div>
-             <span className="font-medium">My Profile</span>
+             <span className="font-medium">{t('nav.profile')}</span>
            </button>
         </div>
       </nav>
 
-      {/* Mobile Bottom Bar */}
       <nav className="md:hidden fixed bottom-0 left-0 w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-slate-200/60 dark:border-slate-800/60 z-50 px-2 py-1 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
         <div className="flex justify-between items-center overflow-x-auto no-scrollbar py-1">
           {navItems.slice(0, 5).map((item) => {
@@ -123,14 +121,12 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, setView, toggleThe
                     {item.label}
                 </span>
                 
-                {/* Active Dot */}
                 {isActive && (
                     <span className="absolute -bottom-1 w-1 h-1 bg-rose-500 rounded-full animate-fade-in" />
                 )}
                 </button>
             );
           })}
-           {/* Mobile Profile/Menu Trigger */}
           <button
               onClick={() => setView('profile')}
               className={`relative flex flex-col items-center justify-center p-2 rounded-2xl min-w-[68px] transition-all duration-300 active:scale-90 ${
@@ -138,7 +134,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentView, setView, toggleThe
               }`}
             >
               <UserCircle size={22} />
-              <span className="text-[9px] font-bold mt-1">Profile</span>
+              <span className="text-[9px] font-bold mt-1">{t('nav.profile')}</span>
           </button>
         </div>
       </nav>

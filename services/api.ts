@@ -1,3 +1,4 @@
+
 import { UserProfile, CycleDay, Post, ChatRoomMessage } from '../types';
 import { MOCK_USER, FORUM_POSTS, MOCK_CHAT_HISTORY } from '../constants';
 
@@ -6,7 +7,7 @@ const DELAY = 600;
 
 // Local Storage Keys (Acting as Database Tables)
 const DB_USERS = 'luna_db_users';
-const DB_SESSION = 'luna_db_session_uid';
+const DB_SESSION = 'luna_db_session_uid'; // Key used for session
 const DB_CYCLE_LOGS = 'luna_db_cycle_logs';
 const DB_POSTS = 'luna_db_posts';
 const DB_CHAT = 'luna_db_chat';
@@ -26,12 +27,22 @@ const saveDB = (key: string, data: any[]) => {
 
 export const api = {
   auth: {
-    login: async (email: string, password: string): Promise<UserProfile> => {
+    login: async (email: string, password: string, remember: boolean = true): Promise<UserProfile> => {
       await new Promise(resolve => setTimeout(resolve, DELAY));
       const users = getDB(DB_USERS);
       const user = users.find((u: any) => u.email === email && u.password === password);
+      
       if (!user) throw new Error('Invalid email or password');
-      localStorage.setItem(DB_SESSION, user.id);
+      
+      // Handle "Stay Logged In" logic
+      if (remember) {
+        localStorage.setItem(DB_SESSION, user.id);
+        sessionStorage.removeItem(DB_SESSION);
+      } else {
+        sessionStorage.setItem(DB_SESSION, user.id);
+        localStorage.removeItem(DB_SESSION);
+      }
+
       const { password: _, ...userProfile } = user;
       return userProfile as UserProfile;
     },
@@ -53,21 +64,31 @@ export const api = {
 
       users.push(newUser);
       saveDB(DB_USERS, users);
+      
+      // Default signup behavior: persist session
       localStorage.setItem(DB_SESSION, newUser.id);
+      
       const { password: _, ...userProfile } = newUser;
       return userProfile as UserProfile;
     },
 
     getSession: async (): Promise<UserProfile | null> => {
       await new Promise(resolve => setTimeout(resolve, 300));
-      const uid = localStorage.getItem(DB_SESSION);
+      // Check both local (persistent) and session (temporary) storage
+      const uid = localStorage.getItem(DB_SESSION) || sessionStorage.getItem(DB_SESSION);
+      
       if (!uid) return null;
+      
       const users = getDB(DB_USERS);
       const user = users.find((u: any) => u.id === uid);
+      
       if (!user) {
+        // Stale session ID
         localStorage.removeItem(DB_SESSION);
+        sessionStorage.removeItem(DB_SESSION);
         return null;
       }
+      
       const { password: _, ...userProfile } = user;
       return userProfile as UserProfile;
     },
@@ -75,20 +96,35 @@ export const api = {
     logout: async () => {
         await new Promise(resolve => setTimeout(resolve, 200));
         localStorage.removeItem(DB_SESSION);
+        sessionStorage.removeItem(DB_SESSION);
+    },
+
+    resetPassword: async (email: string): Promise<void> => {
+        await new Promise(resolve => setTimeout(resolve, DELAY));
+        // In a real app, this would send an email. 
+        // For security, we usually don't reveal if the email exists, 
+        // but for this mock, we'll just simulate success.
+        const users = getDB(DB_USERS);
+        const exists = users.some((u: any) => u.email === email);
+        
+        if (!exists) {
+            // Optional: throw error if you want to be strict, 
+            // or return success to prevent user enumeration attacks.
+            // We'll throw for better UI feedback in this demo.
+            throw new Error("No account found with this email.");
+        }
     }
   },
 
   user: {
     updateProfile: async (updates: Partial<UserProfile>): Promise<UserProfile> => {
         await new Promise(resolve => setTimeout(resolve, DELAY));
-        const uid = localStorage.getItem(DB_SESSION);
+        const uid = localStorage.getItem(DB_SESSION) || sessionStorage.getItem(DB_SESSION);
         if (!uid) throw new Error("Unauthorized");
         const users = getDB(DB_USERS);
         const userIndex = users.findIndex((u: any) => u.id === uid);
         if (userIndex === -1) throw new Error("User not found");
         
-        // Ensure we don't accidentally save password via this general method if not intended,
-        // though for this mock it's fine.
         const updatedUser = { ...users[userIndex], ...updates };
         users[userIndex] = updatedUser;
         saveDB(DB_USERS, users);
@@ -98,7 +134,7 @@ export const api = {
 
     changePassword: async (newPassword: string): Promise<void> => {
         await new Promise(resolve => setTimeout(resolve, DELAY));
-        const uid = localStorage.getItem(DB_SESSION);
+        const uid = localStorage.getItem(DB_SESSION) || sessionStorage.getItem(DB_SESSION);
         if (!uid) throw new Error("Unauthorized");
         
         const users = getDB(DB_USERS);
@@ -111,7 +147,7 @@ export const api = {
 
     deleteAccount: async (): Promise<void> => {
         await new Promise(resolve => setTimeout(resolve, DELAY + 400));
-        const uid = localStorage.getItem(DB_SESSION);
+        const uid = localStorage.getItem(DB_SESSION) || sessionStorage.getItem(DB_SESSION);
         if (!uid) return;
 
         // Remove user from DB
@@ -120,13 +156,12 @@ export const api = {
         
         // Remove session
         localStorage.removeItem(DB_SESSION);
-        
-        // Optional: Clean up other related data if necessary
+        sessionStorage.removeItem(DB_SESSION);
     },
 
     registerWorkshop: async (workshopId: string): Promise<UserProfile> => {
         await new Promise(resolve => setTimeout(resolve, DELAY));
-        const uid = localStorage.getItem(DB_SESSION);
+        const uid = localStorage.getItem(DB_SESSION) || sessionStorage.getItem(DB_SESSION);
         if (!uid) throw new Error("Unauthorized");
         
         const users = getDB(DB_USERS);

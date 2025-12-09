@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Navigation from './components/Navigation';
 import CycleTracker from './components/CycleTracker';
@@ -16,6 +17,7 @@ import AuthScreen from './components/AuthScreen';
 import { ViewState, UserProfile, Product } from './types';
 import { api } from './services/api';
 import { Bell } from 'lucide-react';
+import { LanguageProvider } from './contexts/LanguageContext';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -155,50 +157,61 @@ function App() {
     );
   }
 
-  if (!isAuthenticated) {
-    return <AuthScreen onLoginSuccess={handleLoginSuccess} />;
-  }
+  // Wrapped content with LanguageProvider logic inside component for cleaner tree? 
+  // No, we wrap the whole return.
+
+  const AppContent = () => {
+    if (!isAuthenticated) {
+      return <AuthScreen onLoginSuccess={handleLoginSuccess} />;
+    }
+
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-indigo-100 selection:text-indigo-900 transition-colors duration-300">
+        {showOnboarding && <OnboardingTutorial onComplete={handleOnboardingComplete} />}
+        
+        <Navigation currentView={currentView} setView={setCurrentView} toggleTheme={toggleTheme} isDarkMode={darkMode} />
+        
+        <main className="md:ml-72 min-h-screen p-4 md:p-8 max-w-6xl mx-auto transition-all duration-300">
+          {/* Top Header */}
+          <header className="flex justify-between items-center mb-8 sticky top-0 z-40 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md py-4">
+              <div>
+                  <h1 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white capitalize tracking-tight">
+                      {currentView === 'symptom-ai' ? 'Luna AI' : currentView.replace('-', ' ')}
+                  </h1>
+                  <p className="text-slate-500 dark:text-slate-400 text-sm hidden md:block font-medium">Welcome back, {user?.name}!</p>
+              </div>
+              <div className="flex gap-3 items-center">
+                  <button 
+                      onClick={() => setCurrentView('profile')}
+                      className="hidden md:flex items-center gap-2 bg-rose-50 dark:bg-rose-900/30 hover:bg-rose-100 dark:hover:bg-rose-900/50 border border-rose-100 dark:border-rose-900 text-rose-600 dark:text-rose-400 px-4 py-2 rounded-full text-xs font-bold transition-all group"
+                  >
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                      </span>
+                      New Alerts
+                  </button>
+
+                  <button 
+                      onClick={() => setCurrentView('profile')}
+                      className="p-2.5 bg-white dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 transition-all shadow-sm hover:shadow-md relative"
+                  >
+                      <Bell size={20} />
+                      <span className="absolute top-0 right-0 w-3 h-3 bg-pink-500 rounded-full border-2 border-white dark:border-slate-800 animate-pulse"></span>
+                  </button>
+              </div>
+          </header>
+
+          {renderContent()}
+        </main>
+      </div>
+    );
+  };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-indigo-100 selection:text-indigo-900 transition-colors duration-300">
-      {showOnboarding && <OnboardingTutorial onComplete={handleOnboardingComplete} />}
-      
-      <Navigation currentView={currentView} setView={setCurrentView} toggleTheme={toggleTheme} isDarkMode={darkMode} />
-      
-      <main className="md:ml-72 min-h-screen p-4 md:p-8 max-w-6xl mx-auto transition-all duration-300">
-        {/* Top Header */}
-        <header className="flex justify-between items-center mb-8 sticky top-0 z-40 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md py-4">
-            <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white capitalize tracking-tight">
-                    {currentView === 'symptom-ai' ? 'Luna AI' : currentView.replace('-', ' ')}
-                </h1>
-                <p className="text-slate-500 dark:text-slate-400 text-sm hidden md:block font-medium">Welcome back, {user?.name}!</p>
-            </div>
-            <div className="flex gap-3 items-center">
-                <button 
-                    onClick={() => setCurrentView('profile')}
-                    className="hidden md:flex items-center gap-2 bg-rose-50 dark:bg-rose-900/30 hover:bg-rose-100 dark:hover:bg-rose-900/50 border border-rose-100 dark:border-rose-900 text-rose-600 dark:text-rose-400 px-4 py-2 rounded-full text-xs font-bold transition-all group"
-                >
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
-                    </span>
-                    New Alerts
-                </button>
-
-                <button 
-                    onClick={() => setCurrentView('profile')}
-                    className="p-2.5 bg-white dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-200 transition-all shadow-sm hover:shadow-md relative"
-                >
-                    <Bell size={20} />
-                    <span className="absolute top-0 right-0 w-3 h-3 bg-pink-500 rounded-full border-2 border-white dark:border-slate-800 animate-pulse"></span>
-                </button>
-            </div>
-        </header>
-
-        {renderContent()}
-      </main>
-    </div>
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
   );
 }
 
