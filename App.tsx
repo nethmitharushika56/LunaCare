@@ -108,6 +108,14 @@ function App() {
     setCart([...cart, product]);
   };
 
+  const removeFromCart = (productId: string) => {
+    setCart(prev => prev.filter(item => item.id !== productId));
+  };
+
+  const clearCart = () => {
+    setCart([]);
+  };
+
   const renderContent = () => {
     if (!user) return null;
 
@@ -125,7 +133,15 @@ function App() {
       case 'community':
         return <Community user={user} />;
       case 'shop':
-        return <Marketplace cart={cart} addToCart={addToCart} />;
+        return (
+          <Marketplace 
+            cart={cart} 
+            addToCart={addToCart} 
+            removeFromCart={removeFromCart}
+            clearCart={clearCart}
+            setView={setCurrentView}
+          />
+        );
       case 'learn':
         return <LearnHub />;
       case 'profile':

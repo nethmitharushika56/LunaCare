@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
-import { UserProfile, ViewState, Product } from '../types';
-import { Upload, FileText, MapPin, Syringe, ShieldCheck, Activity, Calendar, ChevronRight, AlertCircle, Heart, Plus, Check, X, Trash2, ShoppingBag } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { UserProfile, ViewState, Product, HealthReportAnalysis } from '../types';
+import { Upload, FileText, MapPin, Syringe, ShieldCheck, Activity, Calendar, ChevronRight, AlertCircle, Heart, Plus, Check, X, Trash2, ShoppingBag, Loader2, FileUp, ScanLine, CheckCircle } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { PRODUCTS } from '../constants';
 
@@ -20,7 +20,8 @@ interface Task {
 
 const Dashboard: React.FC<DashboardProps> = ({ user, setView, cart, addToCart }) => {
   const { t } = useLanguage();
-  // Task State Management
+  
+  // Task State
   const [tasks, setTasks] = useState<Task[]>(() => {
     try {
         const saved = localStorage.getItem('luna_daily_tasks');
@@ -35,6 +36,14 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setView, cart, addToCart })
   });
   const [isAdding, setIsAdding] = useState(false);
   const [newTask, setNewTask] = useState('');
+
+  // Upload Analysis State
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploadStep, setUploadStep] = useState<'idle' | 'uploading' | 'analyzing' | 'result'>('idle');
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<HealthReportAnalysis | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Persist tasks
   useEffect(() => {
@@ -63,8 +72,75 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setView, cart, addToCart })
     return t('dash.evening');
   };
 
+  // --- File Upload Logic ---
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) startUploadProcess(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+      e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+      e.preventDefault();
+      const file = e.dataTransfer.files?.[0];
+      if (file) startUploadProcess(file);
+  };
+
+  const startUploadProcess = (file: File) => {
+      setSelectedFile(file);
+      setUploadStep('uploading');
+      setUploadProgress(0);
+
+      // Simulate Upload Progress
+      const interval = setInterval(() => {
+          setUploadProgress(prev => {
+              if (prev >= 100) {
+                  clearInterval(interval);
+                  startAnalysis();
+                  return 100;
+              }
+              return prev + 10;
+          });
+      }, 200);
+  };
+
+  const startAnalysis = () => {
+      setUploadStep('analyzing');
+      // Simulate AI Processing time
+      setTimeout(() => {
+          setAnalysisResult({
+              id: Date.now().toString(),
+              date: new Date().toLocaleDateString(),
+              type: 'Hormone Panel',
+              summary: 'Overall hormonal profile indicates you are in the Follicular Phase. Thyroid levels are within normal range.',
+              metrics: [
+                  { name: 'Estradiol (E2)', value: '45 pg/mL', status: 'Normal' },
+                  { name: 'FSH', value: '6.2 mIU/mL', status: 'Normal' },
+                  { name: 'Progesterone', value: '0.5 ng/mL', status: 'Normal' },
+                  { name: 'Vitamin D', value: '28 ng/mL', status: 'Low' }
+              ],
+              recommendations: [
+                  'Your Vitamin D is slightly low. Consider a 2000 IU supplement.',
+                  'Hormone levels align perfectly with Day 12 of your cycle.',
+                  'Hydration levels appear adequate.'
+              ]
+          });
+          setUploadStep('result');
+      }, 3000);
+  };
+
+  const closeUploadModal = () => {
+      setShowUploadModal(false);
+      setUploadStep('idle');
+      setSelectedFile(null);
+      setAnalysisResult(null);
+      setUploadProgress(0);
+  };
+
   return (
-    <div className="space-y-6 pb-20 animate-fade-in">
+    <div className="space-y-6 pb-20 animate-fade-in relative">
         {/* Welcome Section */}
         <div className="flex justify-between items-end">
             <div>
@@ -120,7 +196,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setView, cart, addToCart })
         {/* Action Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Medical Report Analysis */}
-            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group cursor-pointer relative overflow-hidden hover:-translate-y-1">
+            <div 
+                onClick={() => setShowUploadModal(true)}
+                className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group cursor-pointer relative overflow-hidden hover:-translate-y-1"
+            >
                 <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 dark:bg-indigo-900/20 rounded-bl-[100px] -mr-4 -mt-4 transition-transform group-hover:scale-110 duration-500"></div>
                 
                 <div className="relative z-10">
@@ -344,6 +423,134 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setView, cart, addToCart })
                 })}
             </div>
         </div>
+
+        {/* Upload & Analysis Modal */}
+        {showUploadModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={closeUploadModal}></div>
+                <div className="relative bg-white dark:bg-slate-900 rounded-3xl w-full max-w-lg shadow-2xl animate-fade-in p-6 border border-slate-100 dark:border-slate-800">
+                    <button onClick={closeUploadModal} className="absolute top-4 right-4 p-2 bg-slate-100 dark:bg-slate-800 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 transition-colors z-20">
+                        <X size={20} />
+                    </button>
+
+                    {/* Stage 1: File Upload */}
+                    {uploadStep === 'idle' && (
+                        <div className="text-center py-4">
+                            <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-900/20 rounded-full flex items-center justify-center mx-auto mb-4 text-indigo-500 animate-bounce-slow">
+                                <FileUp size={40} />
+                            </div>
+                            <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">Upload Medical Record</h3>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm mb-6 max-w-xs mx-auto">
+                                Upload blood work, hormone panels, or ultrasound reports for AI analysis.
+                            </p>
+
+                            <div 
+                                className="border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl p-8 cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/10 transition-all group"
+                                onClick={() => fileInputRef.current?.click()}
+                                onDragOver={handleDragOver}
+                                onDrop={handleDrop}
+                            >
+                                <p className="text-sm font-bold text-slate-700 dark:text-slate-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 mb-1">Click to browse or drag file here</p>
+                                <p className="text-xs text-slate-400">PDF, JPG, PNG up to 10MB</p>
+                                <input 
+                                    type="file" 
+                                    ref={fileInputRef} 
+                                    className="hidden" 
+                                    accept=".pdf,.jpg,.jpeg,.png"
+                                    onChange={handleFileSelect}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Stage 2: Uploading Progress */}
+                    {uploadStep === 'uploading' && (
+                        <div className="text-center py-10">
+                            <div className="mb-6 relative w-24 h-24 mx-auto">
+                                <svg className="w-full h-full transform -rotate-90">
+                                    <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-100 dark:text-slate-800" />
+                                    <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-indigo-500 transition-all duration-300" strokeDasharray={251.2} strokeDashoffset={251.2 - (251.2 * uploadProgress) / 100} />
+                                </svg>
+                                <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-bold text-lg text-indigo-600 dark:text-indigo-400">{uploadProgress}%</span>
+                            </div>
+                            <h3 className="font-bold text-slate-800 dark:text-white animate-pulse">Uploading Document...</h3>
+                            <p className="text-xs text-slate-500 mt-2">{selectedFile?.name}</p>
+                        </div>
+                    )}
+
+                    {/* Stage 3: AI Analyzing */}
+                    {uploadStep === 'analyzing' && (
+                        <div className="text-center py-8">
+                            <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden mb-8 relative">
+                                <div className="absolute top-0 left-0 h-full w-1/3 bg-indigo-500 rounded-full animate-[slideInRight_1s_infinite_linear]"></div>
+                            </div>
+                            <div className="w-20 h-20 bg-violet-100 dark:bg-violet-900/20 rounded-full flex items-center justify-center mx-auto mb-4 text-violet-600 dark:text-violet-400 relative">
+                                <ScanLine size={40} className="animate-pulse" />
+                                <div className="absolute inset-0 border-2 border-violet-400 rounded-full animate-ping opacity-20"></div>
+                            </div>
+                            <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">Luna AI is Analyzing</h3>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm">Extracting key biomarkers and health indicators...</p>
+                        </div>
+                    )}
+
+                    {/* Stage 4: Results */}
+                    {uploadStep === 'result' && analysisResult && (
+                        <div className="animate-fade-in">
+                            <div className="flex items-center gap-3 mb-6 bg-green-50 dark:bg-green-900/20 p-4 rounded-xl border border-green-100 dark:border-green-900/30">
+                                <CheckCircle className="text-green-600 dark:text-green-400 flex-shrink-0" size={24} />
+                                <div>
+                                    <h3 className="font-bold text-green-800 dark:text-green-200 text-sm">Analysis Complete</h3>
+                                    <p className="text-xs text-green-600 dark:text-green-400">Verified by Luna AI • {analysisResult.date}</p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl">
+                                    <h4 className="font-bold text-slate-700 dark:text-slate-200 text-sm mb-2 uppercase tracking-wide">Summary</h4>
+                                    <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{analysisResult.summary}</p>
+                                </div>
+
+                                <div>
+                                    <h4 className="font-bold text-slate-700 dark:text-slate-200 text-sm mb-3 uppercase tracking-wide">Key Metrics</h4>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {analysisResult.metrics.map((m, i) => (
+                                            <div key={i} className="p-3 border border-slate-200 dark:border-slate-700 rounded-lg flex flex-col">
+                                                <span className="text-xs text-slate-500 dark:text-slate-400">{m.name}</span>
+                                                <span className="font-bold text-slate-800 dark:text-white">{m.value}</span>
+                                                <span className={`text-[10px] font-bold mt-1 ${
+                                                    m.status === 'Normal' ? 'text-green-500' : 
+                                                    m.status === 'Low' ? 'text-amber-500' : 'text-red-500'
+                                                }`}>
+                                                    ● {m.status}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-xl border border-indigo-100 dark:border-indigo-900/30">
+                                    <h4 className="font-bold text-indigo-800 dark:text-indigo-200 text-sm mb-2 flex items-center gap-2">
+                                        <Activity size={14} /> Recommendation
+                                    </h4>
+                                    <ul className="list-disc list-inside text-xs text-indigo-700 dark:text-indigo-300 space-y-1">
+                                        {analysisResult.recommendations.map((rec, i) => (
+                                            <li key={i}>{rec}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                <button 
+                                    onClick={closeUploadModal}
+                                    className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold py-3 rounded-xl hover:bg-slate-800 transition-colors shadow-lg"
+                                >
+                                    Done
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        )}
     </div>
   );
 };

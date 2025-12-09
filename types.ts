@@ -87,3 +87,16 @@ export interface Notification {
   read: boolean;
   actionLabel?: string;
 }
+
+export interface HealthReportAnalysis {
+  id: string;
+  date: string;
+  type: 'Blood Work' | 'Ultrasound' | 'Hormone Panel';
+  summary: string;
+  metrics: {
+    name: string;
+    value: string;
+    status: 'Normal' | 'Low' | 'High' | 'Critical';
+  }[];
+  recommendations: string[];
+}
