@@ -1,5 +1,6 @@
 
 import { GoogleGenAI } from "@google/genai";
+import { CycleDay } from "../types";
 
 const apiKey = process.env.API_KEY || '';
 
@@ -78,4 +79,73 @@ export const getWellnessAdvice = async (mood: string, language: string = 'en'): 
     } catch (error) {
         return "Rest is productive.";
     }
-}
+};
+
+export const findNearbyCenters = async (lat: number, lng: number, language: string = 'en'): Promise<{ text: string, chunks: any[] }> => {
+  if (!ai) return { text: "AI Service Unavailable.", chunks: [] };
+
+  try {
+    const promptMap: Record<string, string> = {
+      es: 'RESPOND IN SPANISH.',
+      fr: 'RESPOND IN FRENCH.',
+      de: 'RESPOND IN GERMAN.',
+      pt: 'RESPOND IN PORTUGUESE.',
+      zh: 'RESPOND IN SIMPLIFIED CHINESE.',
+      hi: 'RESPOND IN HINDI.',
+      si: 'RESPOND IN SINHALA.',
+      ta: 'RESPOND IN TAMIL.',
+      en: 'RESPOND IN ENGLISH.'
+    };
+    const langPrompt = promptMap[language] || 'RESPOND IN ENGLISH.';
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: `Find 5 highly-rated reproductive health clinics, gynecologists, or OB-GYN centers near the provided location. 
+      For each, provide:
+      - Name
+      - Rating (if available)
+      - Address
+      - A brief 1-line summary of services if known.
+      
+      Present the list clearly using Markdown.
+      ${langPrompt}`,
+      config: {
+        tools: [{ googleMaps: {} }],
+        toolConfig: {
+          retrievalConfig: {
+            latLng: {
+              latitude: lat,
+              longitude: lng
+            }
+          }
+        }
+      },
+    });
+    
+    return {
+        text: response.text || "No centers found nearby.",
+        chunks: response.candidates?.[0]?.groundingMetadata?.groundingChunks || []
+    };
+  } catch (error) {
+    console.error("Gemini Maps Error:", error);
+    return { text: "Sorry, I couldn't access location services right now. Please check your connection.", chunks: [] };
+  }
+};
+
+export const analyzeCycleInsights = async (logs: CycleDay[], cycleLength: number): Promise<string> => {
+    if (!ai) return "AI prediction unavailable.";
+
+    try {
+        const logSummary = logs.slice(0, 5).map(l => `${l.date}: ${l.flow || 'No flow'}, ${l.mood || 'No mood'}`).join('; ');
+
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: `The user has an average cycle length of ${cycleLength} days. Recent logs: ${logSummary}.
+            
+            Task: Provide a concise (3 sentences max) insight about their cycle regularity or upcoming phase. If data is sparse, give a general tip about consistent tracking. Tone: Helpful and medical but friendly.`
+        });
+        return response.text || "Keep tracking to get better insights.";
+    } catch (e) {
+        return "Unable to generate insights right now.";
+    }
+};

@@ -129,7 +129,7 @@ function App() {
       case 'pregnancy':
         return <PregnancyTracker />;
       case 'reproductive-health':
-        return <ReproductiveHealth user={user} setUser={setUser} />;
+        return <ReproductiveHealth user={user} setUser={setUser} setView={setCurrentView} />;
       case 'community':
         return <Community user={user} />;
       case 'shop':

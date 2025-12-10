@@ -2,6 +2,7 @@
   "name": "LunaCare",
   "description": "A comprehensive reproductive health tracking application featuring AI-powered symptom analysis, cycle tracking, pregnancy monitoring, community support, and a wellness marketplace.",
   "requestFramePermissions": [
-    "microphone"
+    "microphone",
+    "geolocation"
   ]
 }

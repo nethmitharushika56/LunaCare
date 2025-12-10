@@ -100,3 +100,53 @@ export interface HealthReportAnalysis {
   }[];
   recommendations: string[];
 }
+
+// Pregnancy Specific Types
+export interface Doctor {
+  name: string;
+  clinic: string;
+  phone: string;
+}
+
+export interface Appointment {
+  id: string;
+  date: string;
+  time: string;
+  type: string;
+  notes?: string;
+}
+
+export interface WeightLog {
+  id: string;
+  date: string;
+  week: number;
+  weight: number;
+}
+
+// Learning Hub Types
+export interface Book {
+  id: string;
+  title: string;
+  author: string;
+  cover: string;
+  rating: number;
+}
+
+export interface Course {
+  id: string;
+  title: string;
+  instructor: string;
+  duration: string;
+  modules: number;
+  image: string;
+  price: string;
+}
+
+export interface Tutor {
+  id: string;
+  name: string;
+  specialty: string;
+  experience: string;
+  rating: number;
+  avatar: string;
+}

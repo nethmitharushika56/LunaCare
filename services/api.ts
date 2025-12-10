@@ -1,6 +1,6 @@
 
-import { UserProfile, CycleDay, Post, ChatRoomMessage } from '../types';
-import { MOCK_USER, FORUM_POSTS, MOCK_CHAT_HISTORY } from '../constants';
+import { UserProfile, CycleDay, Post, ChatRoomMessage, Workshop } from '../types';
+import { MOCK_USER, FORUM_POSTS, MOCK_CHAT_HISTORY, WORKSHOPS } from '../constants';
 
 // Simulated Network Latency (ms)
 const DELAY = 600;
@@ -11,6 +11,7 @@ const DB_SESSION = 'luna_db_session_uid'; // Key used for session
 const DB_CYCLE_LOGS = 'luna_db_cycle_logs';
 const DB_POSTS = 'luna_db_posts';
 const DB_CHAT = 'luna_db_chat';
+const DB_WORKSHOPS = 'luna_db_workshops';
 
 // --- Database Helpers (Server-side logic simulation) ---
 
@@ -195,6 +196,25 @@ export const api = {
         filtered.push(log);
         saveDB(DB_CYCLE_LOGS, filtered);
     }
+  },
+
+  workshops: {
+      getAll: async (): Promise<Workshop[]> => {
+          await new Promise(resolve => setTimeout(resolve, 400));
+          let workshops = getDB(DB_WORKSHOPS);
+          if (workshops.length === 0) {
+              workshops = WORKSHOPS;
+              saveDB(DB_WORKSHOPS, workshops);
+          }
+          return workshops;
+      },
+      create: async (workshop: Workshop): Promise<Workshop> => {
+          await new Promise(resolve => setTimeout(resolve, 800));
+          const workshops = getDB(DB_WORKSHOPS);
+          workshops.unshift(workshop); // Add to beginning
+          saveDB(DB_WORKSHOPS, workshops);
+          return workshop;
+      }
   },
 
   community: {

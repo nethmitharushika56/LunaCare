@@ -1,9 +1,11 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { UserProfile, ViewState, Product, HealthReportAnalysis } from '../types';
-import { Upload, FileText, MapPin, Syringe, ShieldCheck, Activity, Calendar, ChevronRight, AlertCircle, Heart, Plus, Check, X, Trash2, ShoppingBag, Loader2, FileUp, ScanLine, CheckCircle } from 'lucide-react';
+import { Upload, FileText, MapPin, Syringe, ShieldCheck, Activity, Calendar, ChevronRight, AlertCircle, Heart, Plus, Check, X, Trash2, ShoppingBag, Loader2, FileUp, ScanLine, CheckCircle, ExternalLink } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { PRODUCTS } from '../constants';
+import { findNearbyCenters } from '../services/geminiService';
+import ReactMarkdown from 'react-markdown';
 
 interface DashboardProps {
   user: UserProfile;
@@ -18,8 +20,13 @@ interface Task {
   completed: boolean;
 }
 
+interface MapResult {
+    text: string;
+    chunks: any[];
+}
+
 const Dashboard: React.FC<DashboardProps> = ({ user, setView, cart, addToCart }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   
   // Task State
   const [tasks, setTasks] = useState<Task[]>(() => {
@@ -44,6 +51,12 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setView, cart, addToCart })
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [analysisResult, setAnalysisResult] = useState<HealthReportAnalysis | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Map / Centers State
+  const [showMapModal, setShowMapModal] = useState(false);
+  const [mapLoading, setMapLoading] = useState(false);
+  const [mapError, setMapError] = useState('');
+  const [mapResult, setMapResult] = useState<MapResult | null>(null);
 
   // Persist tasks
   useEffect(() => {
@@ -137,6 +150,39 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setView, cart, addToCart })
       setSelectedFile(null);
       setAnalysisResult(null);
       setUploadProgress(0);
+  };
+
+  // --- Map / Centers Logic ---
+  const handleFindCenters = () => {
+      setShowMapModal(true);
+      setMapError('');
+      if (mapResult) return; // Don't fetch again if already have data this session
+
+      setMapLoading(true);
+      
+      if (!navigator.geolocation) {
+          setMapError("Geolocation is not supported by your browser.");
+          setMapLoading(false);
+          return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+          async (position) => {
+              try {
+                  const result = await findNearbyCenters(position.coords.latitude, position.coords.longitude, language);
+                  setMapResult(result);
+              } catch (err) {
+                  setMapError("Failed to fetch medical centers. Please try again.");
+              } finally {
+                  setMapLoading(false);
+              }
+          },
+          (err) => {
+              console.error(err);
+              setMapError("Unable to retrieve your location. Please enable location permissions.");
+              setMapLoading(false);
+          }
+      );
   };
 
   return (
@@ -239,7 +285,10 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setView, cart, addToCart })
             </div>
 
              {/* Find Care */}
-             <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group cursor-pointer relative overflow-hidden hover:-translate-y-1">
+             <div 
+                onClick={handleFindCenters}
+                className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group cursor-pointer relative overflow-hidden hover:-translate-y-1"
+            >
                 <div className="absolute top-0 right-0 w-24 h-24 bg-rose-50 dark:bg-rose-900/20 rounded-bl-[100px] -mr-4 -mt-4 transition-transform group-hover:scale-110 duration-500"></div>
 
                 <div className="relative z-10">
@@ -550,6 +599,88 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setView, cart, addToCart })
                     )}
                 </div>
             </div>
+        )}
+
+        {/* Find Medical Centers Modal */}
+        {showMapModal && (
+             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setShowMapModal(false)}></div>
+                <div className="relative bg-white dark:bg-slate-900 rounded-3xl w-full max-w-2xl max-h-[85vh] shadow-2xl animate-fade-in flex flex-col overflow-hidden border border-slate-100 dark:border-slate-800">
+                    {/* Header */}
+                    <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-950">
+                        <div className="flex items-center gap-3">
+                            <div className="bg-rose-100 dark:bg-rose-900/30 p-2 rounded-full text-rose-500">
+                                <MapPin size={20} />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-slate-800 dark:text-white">Nearby Care Centers</h3>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">Reproductive Health & Gynecology</p>
+                            </div>
+                        </div>
+                        <button onClick={() => setShowMapModal(false)} className="p-2 bg-white dark:bg-slate-800 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700">
+                            <X size={20} />
+                        </button>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto p-6 bg-slate-50 dark:bg-slate-900/50">
+                        {mapLoading && (
+                            <div className="flex flex-col items-center justify-center py-12 text-slate-500 dark:text-slate-400">
+                                <Loader2 size={32} className="animate-spin text-rose-500 mb-4" />
+                                <p className="font-medium">Finding nearby clinics...</p>
+                                <p className="text-xs mt-1">Requesting location & scanning map data</p>
+                            </div>
+                        )}
+
+                        {mapError && (
+                            <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 p-4 rounded-xl text-red-600 dark:text-red-400 text-sm text-center flex flex-col items-center gap-2">
+                                <AlertCircle size={24} />
+                                {mapError}
+                                <button 
+                                    onClick={handleFindCenters}
+                                    className="mt-2 bg-white dark:bg-slate-800 border border-red-200 dark:border-red-800 px-4 py-2 rounded-lg text-xs font-bold shadow-sm hover:bg-red-50 dark:hover:bg-red-900/40"
+                                >
+                                    Retry Location Search
+                                </button>
+                            </div>
+                        )}
+
+                        {!mapLoading && !mapError && mapResult && (
+                            <div className="space-y-6">
+                                <div className="prose dark:prose-invert prose-sm max-w-none">
+                                    <ReactMarkdown>{mapResult.text}</ReactMarkdown>
+                                </div>
+                                
+                                {mapResult.chunks && mapResult.chunks.length > 0 && (
+                                    <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-800">
+                                        <h4 className="font-bold text-slate-700 dark:text-slate-300 text-xs uppercase mb-3 flex items-center gap-2">
+                                            <ExternalLink size={12} /> Source Links
+                                        </h4>
+                                        <div className="grid gap-2">
+                                            {mapResult.chunks.map((chunk, i) => {
+                                                if (chunk.web?.uri) {
+                                                    return (
+                                                        <a 
+                                                            key={i} 
+                                                            href={chunk.web.uri} 
+                                                            target="_blank" 
+                                                            rel="noopener noreferrer"
+                                                            className="flex items-center justify-between p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-rose-300 dark:hover:border-rose-700 hover:shadow-sm transition-all text-sm group"
+                                                        >
+                                                            <span className="font-medium text-slate-700 dark:text-slate-200 truncate pr-4">{chunk.web.title || "View on Google Maps"}</span>
+                                                            <ExternalLink size={14} className="text-slate-400 group-hover:text-rose-500" />
+                                                        </a>
+                                                    );
+                                                }
+                                                return null;
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+             </div>
         )}
     </div>
   );

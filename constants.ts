@@ -1,4 +1,5 @@
-import { Product, Post, Article, UserProfile, Workshop, Notification, ChatRoomMessage } from './types';
+
+import { Product, Post, Article, UserProfile, Workshop, Notification, ChatRoomMessage, Book, Course, Tutor } from './types';
 
 export const MOCK_USER: UserProfile = {
   id: 'mock-user-1',
@@ -78,4 +79,22 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
   { id: '2', type: 'reminder', message: 'Time for your monthly breast self-exam.', date: '1d ago', read: false, actionLabel: 'View Guide' },
   { id: '3', type: 'info', message: 'New workshop "Endo Awareness" added.', date: '2d ago', read: true, actionLabel: 'Join' },
   { id: '4', type: 'info', message: 'Your community post received 5 new comments.', date: '3d ago', read: true },
+];
+
+export const BOOKS: Book[] = [
+    { id: '1', title: 'Taking Charge of Your Fertility', author: 'Toni Weschler', cover: 'https://picsum.photos/200/300?random=60', rating: 4.9 },
+    { id: '2', title: 'WomanCode', author: 'Alisa Vitti', cover: 'https://picsum.photos/200/300?random=61', rating: 4.7 },
+    { id: '3', title: 'The Fifth Vital Sign', author: 'Lisa Hendrickson-Jack', cover: 'https://picsum.photos/200/300?random=62', rating: 4.8 },
+];
+
+export const COURSES: Course[] = [
+    { id: '1', title: 'Cycle Syncing Masterclass', instructor: 'Dr. Anna Cabeca', duration: '4 Weeks', modules: 12, image: 'https://picsum.photos/400/220?random=70', price: '$49' },
+    { id: '2', title: 'Holistic Fertility Prep', instructor: 'Nutritionist Sarah', duration: '6 Weeks', modules: 18, image: 'https://picsum.photos/400/220?random=71', price: '$79' },
+    { id: '3', title: 'Endo Warriors: Pain Management', instructor: 'Pelvic PT Team', duration: '2 Weeks', modules: 6, image: 'https://picsum.photos/400/220?random=72', price: '$29' },
+];
+
+export const TUTORS: Tutor[] = [
+    { id: '1', name: 'Dr. Elena Rossi', specialty: 'Reproductive Endocrinologist', experience: '12 Years', rating: 5.0, avatar: 'https://ui-avatars.com/api/?name=Elena+Rossi&background=rose&color=fff' },
+    { id: '2', name: 'Sarah Miller', specialty: 'Fertility Nutritionist', experience: '8 Years', rating: 4.8, avatar: 'https://ui-avatars.com/api/?name=Sarah+Miller&background=green&color=fff' },
+    { id: '3', name: 'Maya Patel', specialty: 'Pelvic Floor Therapist', experience: '6 Years', rating: 4.9, avatar: 'https://ui-avatars.com/api/?name=Maya+Patel&background=purple&color=fff' },
 ];

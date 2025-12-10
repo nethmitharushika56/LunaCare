@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { analyzeSymptoms } from '../services/geminiService';
 import { ChatMessage, UserProfile } from '../types';
@@ -105,7 +106,7 @@ const SymptomChecker: React.FC<SymptomCheckerProps> = ({ user }) => {
         </div>
 
         {/* Input */}
-        <div className="p-4 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex-shrink-0">
+        <div className="p-4 pb-24 md:pb-4 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex-shrink-0">
             <div className="flex gap-2">
                 <input 
                     type="text" 
