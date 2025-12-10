@@ -13,15 +13,25 @@ const DB_POSTS = 'luna_db_posts';
 const DB_CHAT = 'luna_db_chat';
 const DB_WORKSHOPS = 'luna_db_workshops';
 
-// --- Database Helpers (Server-side logic simulation) ---
+// --- Database Helpers ---
 
+// Simple synchronous helpers for demo stability
 const getDB = (key: string): any[] => {
-  const data = localStorage.getItem(key);
-  return data ? JSON.parse(data) : [];
+  try {
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : [];
+  } catch (e) {
+    console.error("DB Read Error", e);
+    return [];
+  }
 };
 
 const saveDB = (key: string, data: any[]) => {
-  localStorage.setItem(key, JSON.stringify(data));
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (e) {
+    console.error("DB Write Error", e);
+  }
 };
 
 // --- API Layer ---
@@ -30,12 +40,14 @@ export const api = {
   auth: {
     login: async (email: string, password: string, remember: boolean = true): Promise<UserProfile> => {
       await new Promise(resolve => setTimeout(resolve, DELAY));
+      
       const users = getDB(DB_USERS);
+      // Simple text comparison for demo
       const user = users.find((u: any) => u.email === email && u.password === password);
       
       if (!user) throw new Error('Invalid email or password');
       
-      // Handle "Stay Logged In" logic
+      // Store session
       if (remember) {
         localStorage.setItem(DB_SESSION, user.id);
         sessionStorage.removeItem(DB_SESSION);
@@ -50,12 +62,14 @@ export const api = {
 
     signup: async (data: { name: string; email: string; password: string; age: number }): Promise<UserProfile> => {
       await new Promise(resolve => setTimeout(resolve, DELAY));
+      
       const users = getDB(DB_USERS);
       if (users.find((u: any) => u.email === data.email)) throw new Error('User with this email already exists');
 
       const newUser = {
         id: Date.now().toString(),
         ...data,
+        password: data.password, // Plain text for demo stability
         goal: 'track',
         cycleLength: 28,
         periodLength: 5,
@@ -66,16 +80,48 @@ export const api = {
       users.push(newUser);
       saveDB(DB_USERS, users);
       
-      // Default signup behavior: persist session
       localStorage.setItem(DB_SESSION, newUser.id);
       
       const { password: _, ...userProfile } = newUser;
       return userProfile as UserProfile;
     },
 
+    googleLogin: async (): Promise<UserProfile> => {
+      await new Promise(resolve => setTimeout(resolve, DELAY + 400));
+      
+      const users = getDB(DB_USERS);
+      const googleEmail = "google_user@example.com";
+      
+      let user = users.find((u: any) => u.email === googleEmail);
+      
+      if (!user) {
+          // Create new user for Google login if not exists
+          user = {
+            id: 'google-uid-' + Date.now(),
+            email: googleEmail,
+            name: 'Luna Google User',
+            age: 28, // Default age
+            goal: 'track',
+            cycleLength: 28,
+            periodLength: 5,
+            lastPeriodStart: new Date().toISOString(),
+            registeredWorkshopIds: [],
+            avatar: 'https://ui-avatars.com/api/?name=Google+User&background=4285F4&color=fff',
+            password: '' // No password for OAuth
+          };
+          users.push(user);
+          saveDB(DB_USERS, users);
+      }
+      
+      localStorage.setItem(DB_SESSION, user.id);
+      sessionStorage.removeItem(DB_SESSION);
+
+      const { password: _, ...userProfile } = user;
+      return userProfile as UserProfile;
+    },
+
     getSession: async (): Promise<UserProfile | null> => {
       await new Promise(resolve => setTimeout(resolve, 300));
-      // Check both local (persistent) and session (temporary) storage
       const uid = localStorage.getItem(DB_SESSION) || sessionStorage.getItem(DB_SESSION);
       
       if (!uid) return null;
@@ -84,7 +130,6 @@ export const api = {
       const user = users.find((u: any) => u.id === uid);
       
       if (!user) {
-        // Stale session ID
         localStorage.removeItem(DB_SESSION);
         sessionStorage.removeItem(DB_SESSION);
         return null;
@@ -102,16 +147,9 @@ export const api = {
 
     resetPassword: async (email: string): Promise<void> => {
         await new Promise(resolve => setTimeout(resolve, DELAY));
-        // In a real app, this would send an email. 
-        // For security, we usually don't reveal if the email exists, 
-        // but for this mock, we'll just simulate success.
         const users = getDB(DB_USERS);
         const exists = users.some((u: any) => u.email === email);
-        
         if (!exists) {
-            // Optional: throw error if you want to be strict, 
-            // or return success to prevent user enumeration attacks.
-            // We'll throw for better UI feedback in this demo.
             throw new Error("No account found with this email.");
         }
     }
@@ -122,6 +160,7 @@ export const api = {
         await new Promise(resolve => setTimeout(resolve, DELAY));
         const uid = localStorage.getItem(DB_SESSION) || sessionStorage.getItem(DB_SESSION);
         if (!uid) throw new Error("Unauthorized");
+        
         const users = getDB(DB_USERS);
         const userIndex = users.findIndex((u: any) => u.id === uid);
         if (userIndex === -1) throw new Error("User not found");
@@ -129,6 +168,7 @@ export const api = {
         const updatedUser = { ...users[userIndex], ...updates };
         users[userIndex] = updatedUser;
         saveDB(DB_USERS, users);
+        
         const { password: _, ...userProfile } = updatedUser;
         return userProfile as UserProfile;
     },
@@ -151,11 +191,10 @@ export const api = {
         const uid = localStorage.getItem(DB_SESSION) || sessionStorage.getItem(DB_SESSION);
         if (!uid) return;
 
-        // Remove user from DB
-        const users = getDB(DB_USERS).filter((u: any) => u.id !== uid);
-        saveDB(DB_USERS, users);
+        const users = getDB(DB_USERS);
+        const newUsers = users.filter((u: any) => u.id !== uid);
+        saveDB(DB_USERS, newUsers);
         
-        // Remove session
         localStorage.removeItem(DB_SESSION);
         sessionStorage.removeItem(DB_SESSION);
     },
@@ -191,7 +230,6 @@ export const api = {
     logDay: async (log: CycleDay): Promise<void> => {
         await new Promise(resolve => setTimeout(resolve, 400));
         const logs = getDB(DB_CYCLE_LOGS);
-        // Remove existing log for this date to overwrite
         const filtered = logs.filter((l: CycleDay) => l.date !== log.date);
         filtered.push(log);
         saveDB(DB_CYCLE_LOGS, filtered);
@@ -211,7 +249,7 @@ export const api = {
       create: async (workshop: Workshop): Promise<Workshop> => {
           await new Promise(resolve => setTimeout(resolve, 800));
           const workshops = getDB(DB_WORKSHOPS);
-          workshops.unshift(workshop); // Add to beginning
+          workshops.unshift(workshop);
           saveDB(DB_WORKSHOPS, workshops);
           return workshop;
       }
@@ -222,11 +260,10 @@ export const api = {
         await new Promise(resolve => setTimeout(resolve, 400));
         let posts = getDB(DB_POSTS);
         if (posts.length === 0) {
-            // Seed with constants if empty
             posts = FORUM_POSTS;
             saveDB(DB_POSTS, posts);
         }
-        return posts.sort((a: Post, b: Post) => b.id.localeCompare(a.id)); // Simple sort
+        return posts.sort((a: Post, b: Post) => b.id.localeCompare(a.id));
     },
     createPost: async (post: Post): Promise<Post> => {
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -245,7 +282,7 @@ export const api = {
         return msgs;
     },
     sendChatMessage: async (msg: ChatRoomMessage): Promise<void> => {
-        await new Promise(resolve => setTimeout(resolve, 100)); // fast
+        await new Promise(resolve => setTimeout(resolve, 100));
         const msgs = getDB(DB_CHAT);
         msgs.push(msg);
         saveDB(DB_CHAT, msgs);

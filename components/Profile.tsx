@@ -1,17 +1,42 @@
+
 import React, { useState } from 'react';
 import { UserProfile, ViewState } from '../types';
 import { MOCK_NOTIFICATIONS } from '../constants';
 import { Bell, Settings, LogOut, ChevronRight, AlertCircle, Info, Clock, User, FileText } from 'lucide-react';
 import HealthReportModal from './HealthReportModal';
+import { api } from '../services/api';
 
 interface ProfileProps {
   user: UserProfile;
   onLogout: () => void;
   setView: (view: ViewState) => void;
+  setUser: (user: UserProfile) => void;
 }
 
-const Profile: React.FC<ProfileProps> = ({ user, onLogout, setView }) => {
+const Profile: React.FC<ProfileProps> = ({ user, onLogout, setView, setUser }) => {
   const [showReport, setShowReport] = useState(false);
+  const [toggling, setToggling] = useState(false);
+
+  const areNotificationsEnabled = user.notificationsEnabled !== false;
+
+  const toggleNotifications = async () => {
+      setToggling(true);
+      const newState = !areNotificationsEnabled;
+      
+      // Optimistic update
+      const updatedUser = { ...user, notificationsEnabled: newState };
+      setUser(updatedUser);
+
+      try {
+          await api.user.updateProfile({ notificationsEnabled: newState });
+      } catch (e) {
+          console.error("Failed to update notification settings", e);
+          // Revert if failed
+          setUser({ ...user, notificationsEnabled: !newState });
+      } finally {
+          setToggling(false);
+      }
+  };
 
   return (
     <div className="space-y-6 pb-20 animate-fade-in">
@@ -28,7 +53,6 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogout, setView }) => {
             </div>
             <div>
                 <h3 className="text-xl font-bold text-slate-800 dark:text-white">{user.name}</h3>
-                <p className="text-slate-500 dark:text-slate-400 text-sm">Member since 2024</p>
                 <div className="flex gap-2 mt-2">
                     <span className="text-[10px] bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 px-2 py-1 rounded-md font-bold uppercase tracking-wider border border-rose-100 dark:border-rose-900">
                         {user.goal}
@@ -49,11 +73,22 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogout, setView }) => {
 
         {/* Notifications & Alerts Center */}
         <div>
-            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                <Bell className="text-rose-500" size={20} />
-                Alerts & Notifications
-            </h3>
-            <div className="space-y-3">
+            <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                    <Bell className="text-rose-500" size={20} />
+                    Alerts & Notifications
+                </h3>
+                <button 
+                    onClick={toggleNotifications}
+                    disabled={toggling}
+                    className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-rose-500 ${areNotificationsEnabled ? 'bg-rose-500' : 'bg-slate-300 dark:bg-slate-700'}`}
+                    title={areNotificationsEnabled ? "Disable Notifications" : "Enable Notifications"}
+                >
+                    <div className={`w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform duration-200 ease-in-out ${areNotificationsEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
+                </button>
+            </div>
+            
+            <div className={`space-y-3 transition-opacity duration-200 ${!areNotificationsEnabled ? 'opacity-50 pointer-events-none' : ''}`}>
                 {MOCK_NOTIFICATIONS.map(notification => (
                     <div 
                         key={notification.id} 
@@ -88,6 +123,9 @@ const Profile: React.FC<ProfileProps> = ({ user, onLogout, setView }) => {
                         )}
                     </div>
                 ))}
+                {!areNotificationsEnabled && (
+                    <p className="text-center text-xs text-slate-400 italic mt-2">Notifications are currently disabled.</p>
+                )}
             </div>
         </div>
 

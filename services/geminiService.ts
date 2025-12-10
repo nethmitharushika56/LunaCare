@@ -2,7 +2,19 @@
 import { GoogleGenAI } from "@google/genai";
 import { CycleDay } from "../types";
 
-const apiKey = process.env.API_KEY || '';
+// Helper to safely get API key without crashing if process is undefined
+const getApiKey = () => {
+    try {
+        if (typeof process !== 'undefined' && process.env) {
+            return process.env.API_KEY || '';
+        }
+    } catch (e) {
+        console.warn('Process env not available');
+    }
+    return '';
+};
+
+const apiKey = getApiKey();
 
 // Safely initialize Gemini. 
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;

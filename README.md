@@ -26,6 +26,8 @@ LunaCare is a comprehensive, AI-powered progressive web application designed to 
 
 ### 5. Personalization & Settings
 - **Health Reports**: Generate monthly summaries of symptoms and cycle data for doctor visits.
+- **Authentication**: Secure email login and **Google Sign-In** integration.
+- **Data Privacy**: Complete control with options to clear local data or **delete account** permanently.
 - **Dark Mode**: Fully supported system-wide dark theme.
 - **Multilingual Support**: Interface and AI support for 9 languages.
 

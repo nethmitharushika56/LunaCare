@@ -201,6 +201,73 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setView, cart, addToCart })
             </div>
         </div>
 
+        {/* Action Grid - Moved above Hero for easier access on mobile */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Medical Report Analysis */}
+            <div 
+                onClick={() => setShowUploadModal(true)}
+                className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group cursor-pointer relative overflow-hidden hover:-translate-y-1"
+            >
+                <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 dark:bg-indigo-900/20 rounded-bl-[100px] -mr-4 -mt-4 transition-transform group-hover:scale-110 duration-500"></div>
+                
+                <div className="relative z-10">
+                    <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-xl flex items-center justify-center mb-4 group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">
+                        <FileText size={24} />
+                    </div>
+                    <h3 className="font-bold text-slate-800 dark:text-white text-lg">{t('dash.report')}</h3>
+                    <p className="text-slate-500 dark:text-slate-400 text-xs mt-2 mb-4 leading-relaxed">
+                        Upload lab reports for AI analysis.
+                    </p>
+                    <button className="w-full py-2.5 border border-indigo-100 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-bold text-xs flex items-center justify-center gap-2 group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600 transition-all">
+                        <Upload size={14} /> {t('dash.upload')}
+                    </button>
+                </div>
+            </div>
+
+            {/* Find Care */}
+             <div 
+                onClick={handleFindCenters}
+                className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group cursor-pointer relative overflow-hidden hover:-translate-y-1"
+            >
+                <div className="absolute top-0 right-0 w-24 h-24 bg-rose-50 dark:bg-rose-900/20 rounded-bl-[100px] -mr-4 -mt-4 transition-transform group-hover:scale-110 duration-500"></div>
+
+                <div className="relative z-10">
+                    <div className="w-12 h-12 bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400 rounded-xl flex items-center justify-center mb-4 group-hover:bg-rose-600 group-hover:text-white transition-colors duration-300">
+                        <MapPin size={24} />
+                    </div>
+                    <h3 className="font-bold text-slate-800 dark:text-white text-lg">{t('dash.medical')}</h3>
+                    <p className="text-slate-500 dark:text-slate-400 text-xs mt-2 mb-4 leading-relaxed">
+                        Locate trusted gynecologists nearby.
+                    </p>
+                    <div className="flex items-center gap-1 text-rose-600 dark:text-rose-400 font-bold text-xs cursor-pointer hover:underline mt-auto">
+                        {t('dash.find')} <ChevronRight size={14} />
+                    </div>
+                </div>
+            </div>
+
+            {/* Vaccination Tracker */}
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group cursor-pointer relative overflow-hidden hover:-translate-y-1">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-teal-50 dark:bg-teal-900/20 rounded-bl-[100px] -mr-4 -mt-4 transition-transform group-hover:scale-110 duration-500"></div>
+
+                <div className="relative z-10">
+                    <div className="w-12 h-12 bg-teal-100 dark:bg-teal-900/50 text-teal-600 dark:text-teal-400 rounded-xl flex items-center justify-center mb-4 group-hover:bg-teal-600 group-hover:text-white transition-colors duration-300">
+                        <Syringe size={24} />
+                    </div>
+                    <h3 className="font-bold text-slate-800 dark:text-white text-lg">{t('dash.vaccine')}</h3>
+                    <div className="space-y-3 mt-3">
+                        <div className="flex justify-between items-center text-sm bg-slate-50 dark:bg-slate-800 p-2 rounded-lg">
+                            <span className="text-slate-600 dark:text-slate-300 text-xs font-semibold">HPV Vaccine</span>
+                            <span className="text-teal-700 dark:text-teal-300 font-bold bg-teal-100 dark:bg-teal-900/50 px-2 py-0.5 rounded text-[10px] uppercase">Done</span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm bg-slate-50 dark:bg-slate-800 p-2 rounded-lg">
+                            <span className="text-slate-600 dark:text-slate-300 text-xs font-semibold">Flu Shot</span>
+                            <span className="text-amber-700 dark:text-amber-300 font-bold bg-amber-100 dark:bg-amber-900/50 px-2 py-0.5 rounded text-[10px] uppercase">Due Now</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         {/* Hero: Womb Health Status */}
         <div className="bg-gradient-to-r from-rose-500 to-pink-600 dark:from-rose-600 dark:to-pink-700 rounded-3xl p-6 md:p-8 text-white shadow-xl shadow-rose-200/50 dark:shadow-rose-900/20 relative overflow-hidden group">
              <div className="relative z-10 grid md:grid-cols-2 gap-6 items-center">
@@ -237,73 +304,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setView, cart, addToCart })
              {/* Background Decoration */}
              <div className="absolute -right-10 -bottom-20 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover:translate-x-4 transition-transform duration-1000"></div>
              <div className="absolute left-10 -top-20 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl group-hover:-translate-x-4 transition-transform duration-1000"></div>
-        </div>
-
-        {/* Action Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Medical Report Analysis */}
-            <div 
-                onClick={() => setShowUploadModal(true)}
-                className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group cursor-pointer relative overflow-hidden hover:-translate-y-1"
-            >
-                <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 dark:bg-indigo-900/20 rounded-bl-[100px] -mr-4 -mt-4 transition-transform group-hover:scale-110 duration-500"></div>
-                
-                <div className="relative z-10">
-                    <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-xl flex items-center justify-center mb-4 group-hover:bg-indigo-600 group-hover:text-white transition-colors duration-300">
-                        <FileText size={24} />
-                    </div>
-                    <h3 className="font-bold text-slate-800 dark:text-white text-lg">{t('dash.report')}</h3>
-                    <p className="text-slate-500 dark:text-slate-400 text-xs mt-2 mb-4 leading-relaxed">
-                        Upload lab reports (blood work, ultrasound) for AI-powered health insights.
-                    </p>
-                    <button className="w-full py-2.5 border border-indigo-100 dark:border-indigo-800 bg-indigo-50/50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-bold text-xs flex items-center justify-center gap-2 group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600 transition-all">
-                        <Upload size={14} /> {t('dash.upload')}
-                    </button>
-                </div>
-            </div>
-
-            {/* Vaccination Tracker */}
-            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group cursor-pointer relative overflow-hidden hover:-translate-y-1">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-teal-50 dark:bg-teal-900/20 rounded-bl-[100px] -mr-4 -mt-4 transition-transform group-hover:scale-110 duration-500"></div>
-
-                <div className="relative z-10">
-                    <div className="w-12 h-12 bg-teal-100 dark:bg-teal-900/50 text-teal-600 dark:text-teal-400 rounded-xl flex items-center justify-center mb-4 group-hover:bg-teal-600 group-hover:text-white transition-colors duration-300">
-                        <Syringe size={24} />
-                    </div>
-                    <h3 className="font-bold text-slate-800 dark:text-white text-lg">{t('dash.vaccine')}</h3>
-                    <div className="space-y-3 mt-3">
-                        <div className="flex justify-between items-center text-sm bg-slate-50 dark:bg-slate-800 p-2 rounded-lg">
-                            <span className="text-slate-600 dark:text-slate-300 text-xs font-semibold">HPV Vaccine</span>
-                            <span className="text-teal-700 dark:text-teal-300 font-bold bg-teal-100 dark:bg-teal-900/50 px-2 py-0.5 rounded text-[10px] uppercase">Done</span>
-                        </div>
-                        <div className="flex justify-between items-center text-sm bg-slate-50 dark:bg-slate-800 p-2 rounded-lg">
-                            <span className="text-slate-600 dark:text-slate-300 text-xs font-semibold">Flu Shot</span>
-                            <span className="text-amber-700 dark:text-amber-300 font-bold bg-amber-100 dark:bg-amber-900/50 px-2 py-0.5 rounded text-[10px] uppercase">Due Now</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-             {/* Find Care */}
-             <div 
-                onClick={handleFindCenters}
-                className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group cursor-pointer relative overflow-hidden hover:-translate-y-1"
-            >
-                <div className="absolute top-0 right-0 w-24 h-24 bg-rose-50 dark:bg-rose-900/20 rounded-bl-[100px] -mr-4 -mt-4 transition-transform group-hover:scale-110 duration-500"></div>
-
-                <div className="relative z-10">
-                    <div className="w-12 h-12 bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400 rounded-xl flex items-center justify-center mb-4 group-hover:bg-rose-600 group-hover:text-white transition-colors duration-300">
-                        <MapPin size={24} />
-                    </div>
-                    <h3 className="font-bold text-slate-800 dark:text-white text-lg">{t('dash.medical')}</h3>
-                    <p className="text-slate-500 dark:text-slate-400 text-xs mt-2 mb-4 leading-relaxed">
-                        Locate trusted gynecologists and fertility clinics near you.
-                    </p>
-                    <div className="flex items-center gap-1 text-rose-600 dark:text-rose-400 font-bold text-xs cursor-pointer hover:underline mt-auto">
-                        {t('dash.find')} <ChevronRight size={14} />
-                    </div>
-                </div>
-            </div>
         </div>
 
         {/* Detailed Insights */}
@@ -475,9 +475,9 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setView, cart, addToCart })
 
         {/* Upload & Analysis Modal */}
         {showUploadModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
                 <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={closeUploadModal}></div>
-                <div className="relative bg-white dark:bg-slate-900 rounded-3xl w-full max-w-lg shadow-2xl animate-fade-in p-6 border border-slate-100 dark:border-slate-800">
+                <div className="relative bg-white dark:bg-slate-900 rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl animate-fade-in p-6 border border-slate-100 dark:border-slate-800">
                     <button onClick={closeUploadModal} className="absolute top-4 right-4 p-2 bg-slate-100 dark:bg-slate-800 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 transition-colors z-20">
                         <X size={20} />
                     </button>
@@ -603,7 +603,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setView, cart, addToCart })
 
         {/* Find Medical Centers Modal */}
         {showMapModal && (
-             <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+             <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
                 <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setShowMapModal(false)}></div>
                 <div className="relative bg-white dark:bg-slate-900 rounded-3xl w-full max-w-2xl max-h-[85vh] shadow-2xl animate-fade-in flex flex-col overflow-hidden border border-slate-100 dark:border-slate-800">
                     {/* Header */}
@@ -622,7 +622,7 @@ const Dashboard: React.FC<DashboardProps> = ({ user, setView, cart, addToCart })
                         </button>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto p-6 bg-slate-50 dark:bg-slate-900/50">
+                    <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50 dark:bg-slate-900/50">
                         {mapLoading && (
                             <div className="flex flex-col items-center justify-center py-12 text-slate-500 dark:text-slate-400">
                                 <Loader2 size={32} className="animate-spin text-rose-500 mb-4" />

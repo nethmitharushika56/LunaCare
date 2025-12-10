@@ -145,7 +145,7 @@ function App() {
       case 'learn':
         return <LearnHub />;
       case 'profile':
-        return <Profile user={user} onLogout={handleLogout} setView={setCurrentView} />;
+        return <Profile user={user} setUser={setUser} onLogout={handleLogout} setView={setCurrentView} />;
       case 'settings':
         return (
           <Settings 

@@ -198,12 +198,18 @@ const ReproductiveHealth: React.FC<ReproductiveHealthProps> = ({ user, setUser, 
             <div className="relative z-10 max-w-lg">
                 <h2 className="text-3xl font-bold mb-2">Reproductive Health Hub</h2>
                 <p className="text-pink-100 mb-6">Explore your body, join workshops, and connect with a community that understands you.</p>
-                <div className="flex gap-3">
+                <div className="flex flex-wrap gap-3">
                     <button 
                         onClick={() => setShowLearning(true)}
                         className="bg-white text-rose-600 px-5 py-2 rounded-full font-bold text-sm shadow-md hover:bg-pink-50 transition-colors flex items-center gap-2"
                     >
                         <BookOpen size={16} /> Start Learning
+                    </button>
+                    <button 
+                        onClick={() => setShowHostModal(true)}
+                        className="bg-rose-600 text-white px-5 py-2 rounded-full font-bold text-sm shadow-md hover:bg-rose-700 transition-colors flex items-center gap-2"
+                    >
+                        <CalendarPlus size={16} /> Host Workshop
                     </button>
                     <button 
                         onClick={() => setView('symptom-ai')}
@@ -237,9 +243,10 @@ const ReproductiveHealth: React.FC<ReproductiveHealthProps> = ({ user, setUser, 
                     <h3 className="text-xl font-bold text-slate-800 dark:text-white">Live Workshops</h3>
                     <p className="text-slate-500 dark:text-slate-400 text-sm">Join sessions led by experts</p>
                 </div>
+                {/* Secondary button hidden on mobile since it's now in the header hero */}
                 <button 
                     onClick={() => setShowHostModal(true)}
-                    className="text-rose-500 font-semibold text-sm flex items-center gap-1 hover:bg-rose-50 dark:hover:bg-rose-900/20 px-3 py-1.5 rounded-lg transition-colors"
+                    className="md:flex hidden text-rose-500 font-semibold text-sm items-center gap-1 hover:bg-rose-50 dark:hover:bg-rose-900/20 px-3 py-1.5 rounded-lg transition-colors"
                 >
                     <CalendarPlus size={16} /> Host Workshop
                 </button>
@@ -391,12 +398,12 @@ const ReproductiveHealth: React.FC<ReproductiveHealthProps> = ({ user, setUser, 
 
         {/* Host Workshop Modal */}
         {showHostModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
                 <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setShowHostModal(false)}></div>
-                <div className="relative bg-white dark:bg-slate-900 rounded-[2rem] w-full max-w-md shadow-2xl animate-scale-bounce p-8 border border-slate-100 dark:border-slate-800 overflow-hidden">
+                <div className="relative bg-white dark:bg-slate-900 rounded-[2rem] w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl animate-scale-bounce p-6 border border-slate-100 dark:border-slate-800">
                     <button 
                         onClick={() => setShowHostModal(false)} 
-                        className="absolute top-4 right-4 p-2 bg-slate-50 dark:bg-slate-800 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors"
+                        className="absolute top-4 right-4 p-2 bg-slate-50 dark:bg-slate-800 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors z-10"
                     >
                         <X size={20} />
                     </button>
@@ -649,87 +656,6 @@ const ReproductiveHealth: React.FC<ReproductiveHealthProps> = ({ user, setUser, 
                              )}
                         </div>
                     </div>
-                </div>
-            </div>
-        )}
-
-        {/* Registration Modal */}
-        {selectedWorkshop && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={closeRegistrationModal}></div>
-                <div className="relative bg-white dark:bg-slate-900 rounded-[2rem] w-full max-w-md shadow-2xl animate-scale-bounce p-8 border border-slate-100 dark:border-slate-800 overflow-hidden">
-                    <button 
-                        onClick={closeRegistrationModal} 
-                        className="absolute top-4 right-4 p-2 bg-slate-50 dark:bg-slate-800 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition-colors"
-                    >
-                        <X size={20} />
-                    </button>
-
-                    {!isSuccess ? (
-                        <div className="animate-fade-in">
-                            <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">Confirm Registration</h3>
-                            <p className="text-slate-500 dark:text-slate-400 text-sm mb-8">Secure your spot for this live session.</p>
-                            
-                            <div className="bg-slate-50 dark:bg-slate-800 p-6 rounded-2xl mb-8 space-y-4 border border-slate-100 dark:border-slate-700">
-                                <h4 className="font-bold text-slate-800 dark:text-white text-xl leading-snug">{selectedWorkshop.title}</h4>
-                                <div className="space-y-3 pt-2">
-                                    <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
-                                        <div className="w-8 h-8 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center text-rose-500">
-                                            <Users size={14} />
-                                        </div>
-                                        <span>Hosted by <span className="font-semibold">{selectedWorkshop.host}</span></span>
-                                    </div>
-                                    <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
-                                         <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-500">
-                                            <Calendar size={14} />
-                                        </div>
-                                        <span>{selectedWorkshop.date}</span>
-                                    </div>
-                                    <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300">
-                                         <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-500">
-                                            <Clock size={14} />
-                                        </div>
-                                        <span>Duration: 60 Minutes</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <button 
-                                onClick={handleConfirmRegistration}
-                                disabled={registering}
-                                className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold py-4 rounded-xl hover:bg-slate-800 dark:hover:bg-slate-100 transition-all flex items-center justify-center gap-2 shadow-xl shadow-slate-200 dark:shadow-slate-900/50 active:scale-[0.98]"
-                            >
-                                {registering ? <Loader2 className="animate-spin" size={20} /> : (
-                                    <>Confirm & Join <CheckCircle size={18} /></>
-                                )}
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="text-center py-2 animate-fade-in">
-                            <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce-slow shadow-lg shadow-green-200 dark:shadow-green-900/20">
-                                <CheckCircle size={40} />
-                            </div>
-                            <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">You're In!</h3>
-                            <p className="text-slate-500 dark:text-slate-400 text-sm mb-8 leading-relaxed max-w-xs mx-auto">
-                                You've successfully registered for <strong>{selectedWorkshop.title}</strong>.
-                            </p>
-                            
-                            <div className="space-y-3">
-                                <button 
-                                    onClick={downloadICS}
-                                    className="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-200 dark:shadow-indigo-900/40 active:scale-[0.98]"
-                                >
-                                    <CalendarPlus size={20} /> Add to Device Calendar
-                                </button>
-                                <button 
-                                    onClick={closeRegistrationModal}
-                                    className="w-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold py-4 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                                >
-                                    Close
-                                </button>
-                            </div>
-                        </div>
-                    )}
                 </div>
             </div>
         )}

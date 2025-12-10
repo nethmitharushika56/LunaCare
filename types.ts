@@ -12,6 +12,7 @@ export interface UserProfile {
   lastPeriodStart: string; // ISO date
   registeredWorkshopIds?: string[];
   avatar?: string;
+  notificationsEnabled?: boolean;
 }
 
 export interface CycleDay {

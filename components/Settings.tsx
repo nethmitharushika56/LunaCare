@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { UserProfile, ViewState } from '../types';
-import { ArrowLeft, Moon, Sun, Trash2, Save, RefreshCw, Smartphone, Key, Mail, User, Calendar, Camera, Upload, Globe } from 'lucide-react';
+import { ArrowLeft, Moon, Sun, Trash2, Save, RefreshCw, Smartphone, Key, Mail, User, Calendar, Camera, Upload, Globe, AlertTriangle } from 'lucide-react';
 import { api } from '../services/api';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Language } from '../i18n/translations';
@@ -19,6 +19,7 @@ const Settings: React.FC<SettingsProps> = ({ user, setUser, toggleTheme, isDarkM
   const { language, setLanguage, t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Form States
   const [name, setName] = useState(user.name);
@@ -82,12 +83,20 @@ const Settings: React.FC<SettingsProps> = ({ user, setUser, toggleTheme, isDarkM
   };
 
   const handleClearData = () => {
-    if (window.confirm("Are you sure? This will clear local app data like daily tasks, onboarding status, and theme preferences.")) {
+    if (window.confirm("Are you sure? This will clear all local app preferences, daily tasks, pregnancy logs, and saved themes. This does not delete your account.")) {
         setLoading(true);
         setTimeout(() => {
-            localStorage.removeItem('luna_daily_tasks');
-            localStorage.removeItem('luna_onboarding_complete');
-            localStorage.removeItem('luna_theme');
+            // Comprehensive cleanup of all keys used in the app
+            const keysToClear = [
+                'luna_daily_tasks',
+                'luna_onboarding_complete',
+                'luna_theme',
+                'luna_language',
+                'luna_preg_doctor'
+            ];
+            
+            keysToClear.forEach(key => localStorage.removeItem(key));
+            
             showMessage('success', 'Local data cleared. Reloading app...');
             setTimeout(() => window.location.reload(), 1500);
         }, 1000);
@@ -95,23 +104,36 @@ const Settings: React.FC<SettingsProps> = ({ user, setUser, toggleTheme, isDarkM
   };
 
   const handleDeleteAccount = async () => {
-    if (window.confirm("CRITICAL WARNING: This will permanently delete your account and all associated data. This action cannot be undone.")) {
         setLoading(true);
         try {
             await api.user.deleteAccount();
-            showMessage('success', 'Account deleted. Goodbye.');
+            
+            // Also perform a local cleanup to ensure a fresh state
+            const keysToClear = [
+                'luna_daily_tasks',
+                'luna_onboarding_complete',
+                'luna_theme',
+                'luna_language',
+                'luna_preg_doctor'
+            ];
+            keysToClear.forEach(key => localStorage.removeItem(key));
+
+            // Set flag to redirect to signup screen after reload
+            sessionStorage.setItem('luna_auth_mode', 'signup');
+
             setTimeout(() => {
                 onLogout();
-            }, 1500);
+                window.location.reload();
+            }, 1000);
         } catch (e: any) {
             showMessage('error', e.message || 'Failed to delete account');
             setLoading(false);
+            setShowDeleteModal(false);
         }
-    }
   };
 
   return (
-    <div className="space-y-6 pb-20 animate-fade-in">
+    <div className="space-y-6 pb-20 animate-fade-in relative">
         <div className="flex items-center gap-4">
             <button onClick={() => setView('profile')} className="p-2 bg-white dark:bg-slate-900 rounded-full border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800">
                 <ArrowLeft size={20} />
@@ -300,7 +322,7 @@ const Settings: React.FC<SettingsProps> = ({ user, setUser, toggleTheme, isDarkM
                 </button>
                 
                 <button 
-                    onClick={handleDeleteAccount}
+                    onClick={() => setShowDeleteModal(true)}
                     disabled={loading}
                     className="w-full flex items-center justify-between p-3 rounded-xl border border-red-100 dark:border-red-900/30 bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors group disabled:opacity-50"
                 >
@@ -314,6 +336,39 @@ const Settings: React.FC<SettingsProps> = ({ user, setUser, toggleTheme, isDarkM
             <p className="text-xs font-bold text-slate-400 dark:text-slate-600 uppercase tracking-widest">LunaCare Version 1.1.0</p>
             <p className="text-[10px] text-slate-300 dark:text-slate-700 mt-1">© 2024 LunaHealth Inc.</p>
         </div>
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => !loading && setShowDeleteModal(false)}></div>
+                <div className="relative bg-white dark:bg-slate-900 rounded-2xl w-full max-w-sm p-6 shadow-2xl animate-scale-bounce border border-slate-100 dark:border-slate-800">
+                    <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600 dark:text-red-400">
+                        <AlertTriangle size={24} />
+                    </div>
+                    <h3 className="text-xl font-bold text-center text-slate-800 dark:text-white mb-2">Delete Account?</h3>
+                    <p className="text-center text-slate-500 dark:text-slate-400 text-sm mb-6">
+                        This action is permanent and cannot be undone. All your health data, logs, and settings will be erased.
+                    </p>
+                    
+                    <div className="flex gap-3">
+                        <button 
+                            onClick={() => setShowDeleteModal(false)}
+                            disabled={loading}
+                            className="flex-1 py-3 rounded-xl font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            onClick={handleDeleteAccount}
+                            disabled={loading}
+                            className="flex-1 py-3 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 transition-colors shadow-lg shadow-red-200 dark:shadow-red-900/20 flex items-center justify-center gap-2"
+                        >
+                            {loading ? <RefreshCw className="animate-spin" size={18} /> : 'Delete'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )}
     </div>
   );
 };
